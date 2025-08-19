@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: evaluacion-backend
+    env: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SQLITE_PATH
+        value: /var/data/database.sqlite
+    disk:
+      name: sqldata
+      mountPath: /var/data
+      sizeGB: 1
+  - type: static
+    name: evaluacion-frontend
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://evaluacion-backend.onrender.com/api

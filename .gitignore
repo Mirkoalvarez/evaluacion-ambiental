@@ -11,3 +11,6 @@ frontend/build/
 
 # logs
 *.log
+
+# SQLite database
+backend/database.sqlite
