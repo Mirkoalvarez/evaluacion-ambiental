@@ -3,7 +3,7 @@ services:
     name: evaluacion-backend
     env: node
     rootDir: backend
-    buildCommand: npm install
+    buildCommand: npm ci || npm install
     startCommand: node server.js
     envVars:
       - key: NODE_ENV
@@ -15,11 +15,12 @@ services:
         mountPath: /var/data
         sizeGB: 1
 
-  - type: static_site
+  - type: web
     name: evaluacion-frontend
+    env: node
     rootDir: frontend
-    buildCommand: npm install && npm run build
-    staticPublishPath: build
+    buildCommand: npm ci || npm install && npm run build
+    startCommand: npx serve -s build -l $PORT
     envVars:
       - key: REACT_APP_API_URL
         value: https://evaluacion-backend.onrender.com/api
