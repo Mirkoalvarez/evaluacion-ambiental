@@ -199,6 +199,22 @@
   justify-content: flex-start;    /* label arriba, control debajo */
 }
 
+/* Colores de fondo para secciones del formulario */
+.section-energia,
+.section-agua,
+.section-residuos,
+.section-ev,
+.section-gestion {
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.section-energia { background-color: #faf2ad; }
+.section-agua { background-color: #b9e2ff; }
+.section-residuos { background-color: #c79c63; }
+.section-ev { background-color: #a0e9a0; }
+.section-gestion { background-color: #f8a46c; }
+
 /* El label tiene alto fijo y no cambia el alto del select */
 .min-h-label {
   height: 44px;                   /* fijo: 2-3 líneas de texto */
