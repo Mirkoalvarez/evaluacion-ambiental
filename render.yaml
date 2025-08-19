@@ -14,7 +14,7 @@ services:
       name: sqldata
       mountPath: /var/data
       sizeGB: 1
-  - type: static
+  - type: static_site
     name: evaluacion-frontend
     rootDir: frontend
     buildCommand: npm install && npm run build
