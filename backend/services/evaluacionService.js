@@ -106,6 +106,9 @@ function letraPorRangos(p, { cMax, bMax }) {
     return 'A';
 }
 
+// Limitar cualquier puntaje numérico al máximo visual de 10
+const limitarA10 = (p) => (p > 10 ? 10 : p);
+
 // Total por promedio de letras (A=3, B=2, C=1) con cortes 1.5 / 2.5
 const letraAValor = (L) => (L === 'A' ? 3 : L === 'B' ? 2 : 1);
 function letraTotalDesdeLetras(letras) {
@@ -131,8 +134,8 @@ function calcularResultados(ev) {
         mapSiNo(ev.e1_8),
         mapSiNo(ev.e1_9),
     ];
-    const rangE = rangosABCDesdeCoefs(COEF_E); // min≈3.72, cMax≈6.20, bMax≈8.68
-    ev.puntaje_energia = Number(ejeConCoeficientes(valsE, COEF_E).toFixed(2));
+    const rangE = rangosABCDesdeCoefs(COEF_E); // min≈3.72, cMax≈6.20, bMax≈8.68 
+    ev.puntaje_energia = limitarA10(Number(ejeConCoeficientes(valsE, COEF_E).toFixed(2)));
     ev.resultado_energia = letraPorRangos(ev.puntaje_energia, rangE);
 
     // --- Agua (2.1..2.8) ---
@@ -147,7 +150,7 @@ function calcularResultados(ev) {
         mapSiNo(ev.a2_8),
     ];
     const rangA = rangosABCDesdeCoefs(COEF_A); // min≈3.69, cMax≈6.15, bMax≈8.60
-    ev.puntaje_agua = Number(ejeConCoeficientes(valsA, COEF_A).toFixed(2));
+    ev.puntaje_agua = limitarA10(Number(ejeConCoeficientes(valsA, COEF_A).toFixed(2)));
     ev.resultado_agua = letraPorRangos(ev.puntaje_agua, rangA);
 
     // --- Residuos (3.1..3.6) ---
@@ -160,7 +163,7 @@ function calcularResultados(ev) {
         mapSiNo(ev.r3_6),
     ];
     const rangR = rangosABCDesdeCoefs(COEF_R); // min=4.00, cMax=6.67, bMax=9.33
-    ev.puntaje_residuos = Number(ejeConCoeficientes(valsR, COEF_R).toFixed(2));
+    ev.puntaje_residuos = limitarA10(Number(ejeConCoeficientes(valsR, COEF_R).toFixed(2)));
     ev.resultado_residuos = letraPorRangos(ev.puntaje_residuos, rangR);
 
     // --- Espacios Verdes (4.1..4.8) ---
@@ -175,7 +178,7 @@ function calcularResultados(ev) {
         mapSiNo(ev.ev4_8),
     ];
     const rangEV = rangosABCDesdeCoefs(COEF_EV); // min≈3.63, cMax≈6.04, bMax≈8.46
-    ev.puntaje_espacios_verdes = Number(ejeConCoeficientes(valsEV, COEF_EV).toFixed(2));
+    ev.puntaje_espacios_verdes = limitarA10(Number(ejeConCoeficientes(valsEV, COEF_EV).toFixed(2)));
     ev.resultado_espacios_verdes = letraPorRangos(ev.puntaje_espacios_verdes, rangEV);
 
     // --- Gestión (5.1..5.6) ---
@@ -188,13 +191,13 @@ function calcularResultados(ev) {
         mapSiNo(ev.g5_6),
     ];
     const rangG = rangosABCDesdeCoefs(COEF_G); // min≈3.83, cMax≈6.39, bMax≈8.94
-    ev.puntaje_gestion = Number(ejeConCoeficientes(valsG, COEF_G).toFixed(2));
+    ev.puntaje_gestion = limitarA10(Number(ejeConCoeficientes(valsG, COEF_G).toFixed(2)));
     ev.resultado_gestion = letraPorRangos(ev.puntaje_gestion, rangG);
 
     // --- Total ---
     // Puntaje numérico (para gráficos): promedio simple de los 5 ejes
     const pNum = (ev.puntaje_energia + ev.puntaje_agua + ev.puntaje_residuos + ev.puntaje_espacios_verdes + ev.puntaje_gestion) / 5;
-    ev.puntaje_final = Number(pNum.toFixed(2));
+    ev.puntaje_final = limitarA10(Number(pNum.toFixed(2)))
 
     // Letra total por promedio de letras (A=3, B=2, C=1; cortes 1.5 / 2.5)
     ev.resultado_total = letraTotalDesdeLetras([
