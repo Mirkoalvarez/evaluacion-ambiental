@@ -2,10 +2,27 @@
 // ==========================
 // Mapas 1–3 por indicador (HERRAMIENTA.pdf)
 // ==========================
-const mapSiNo = (v) => (v === 'Sí' ? 3 : v === 'No' ? 1 : 0);
-const mapNPT = (v) => (v === 'Nulo' ? 1 : v === 'Parcial' ? 2 : v === 'Total' ? 3 : 0);
+const mapSiNo = (v) => (
+    v === 'Sí' ? 3 :
+    v === 'No' ? 1 :
+    v === 'No aplica' ? 2 :
+    0
+);
+const mapNPT = (v) => (
+    v === 'Nulo' ? 1 :
+    v === 'Parcial' ? 2 :
+    v === 'Total' ? 3 :
+    v === 'No aplica' ? 2 :
+    0
+);
 // NPT invertido (Total peor, Nulo mejor) -> Total=1, Parcial=2, Nulo=3
-const mapNPTInvertido = (v) => (v === 'Total' ? 1 : v === 'Parcial' ? 2 : v === 'Nulo' ? 3 : 0);
+const mapNPTInvertido = (v) => (
+    v === 'Total' ? 1 :
+    v === 'Parcial' ? 2 :
+    v === 'Nulo' ? 3 :
+    v === 'No aplica' ? 2 :
+    0
+);
 // Área verde por lote (ev4_1)
 const mapAreaVerde = (v) => (v === 'Menos de 20 m²' ? 1 : v === '20-29 m²' ? 2 : v === '30 m² o más' ? 3 : 0);
 // r3_3: 0 →1; 1–2 →2; ≥3 →3

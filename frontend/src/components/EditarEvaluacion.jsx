@@ -5,7 +5,9 @@ import { updateBarrioNombre, listarBarrios } from '../features/barriosSlice';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 
 const SINO = ['Sí', 'No'];
+const SINO_NA = ['Sí', 'No', 'No aplica'];
 const NPT  = ['Nulo', 'Parcial', 'Total'];
+const NPT_NA = ['Nulo', 'Parcial', 'Total', 'No aplica'];
 const AREA = ['Menos de 20 m²', '20-29 m²', '30 m² o más'];
 
 const LABELS = {
@@ -240,10 +242,10 @@ export default function EditarEvaluacion() {
                         <div className="col-md-4" key={n}>{renderQuestion(n, SINO)}</div>
                     ))}
                     {['a2_3','a2_4'].map(n => (
-                        <div className="col-md-4" key={n}>{renderQuestion(n, NPT)}</div>
+                        <div className="col-md-4" key={n}>{renderQuestion(n, n === 'a2_4' ? NPT_NA : NPT)}</div>
                     ))}
                     {['a2_5','a2_6','a2_7','a2_8'].map(n => (
-                        <div className="col-md-4" key={n}>{renderQuestion(n, SINO)}</div>
+                        <div className="col-md-4" key={n}>{renderQuestion(n, ['a2_5','a2_6'].includes(n) ? SINO_NA : SINO)}</div>
                     ))}
                     </div>
                 </div>

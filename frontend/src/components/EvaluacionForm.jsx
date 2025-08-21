@@ -4,7 +4,9 @@ import { crearEvaluacion } from '../features/evaluacionesSlice';
 import { useNavigate } from 'react-router-dom';
 
 const SINO = ['Sí', 'No'];
+const SINO_NA = ['Sí', 'No', 'No aplica'];
 const NPT = ['Nulo', 'Parcial', 'Total'];
+const NPT_NA = ['Nulo', 'Parcial', 'Total', 'No aplica'];
 const AREA = ['Menos de 20 m²', '20-29 m²', '30 m² o más'];
 const hoy = () => new Date().toISOString().slice(0,10);
 
@@ -152,12 +154,12 @@ export default function EvaluacionForm() {
                     ))}
                     {['a2_3', 'a2_4'].map(name => (
                         <div className="col-md-4" key={name}>
-                        {renderQuestion(name, NPT)}
+                        {renderQuestion(name, name === 'a2_4' ? NPT_NA : NPT)}
                         </div>
                     ))}
                     {['a2_5', 'a2_6', 'a2_7', 'a2_8'].map(name => (
                         <div className="col-md-4" key={name}>
-                        {renderQuestion(name, SINO)}
+                        {renderQuestion(name, ['a2_5','a2_6'].includes(name) ? SINO_NA : SINO)}
                         </div>
                     ))}
                     </div>
