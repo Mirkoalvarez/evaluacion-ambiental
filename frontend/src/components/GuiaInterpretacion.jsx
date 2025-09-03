@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import './GuiaInterpretacion.css';
 
 export default function GuiaInterpretacion() {
     useEffect(() => {
@@ -23,7 +24,7 @@ export default function GuiaInterpretacion() {
         </div>
 
         <nav>
-        <ul>
+        <ul className="guia-interpretacion-nav">
             <li><a href="#energia">Energía</a></li>
             <li><a href="#agua">Agua</a></li>
             <li><a href="#residuos">Residuos</a></li>
@@ -32,7 +33,7 @@ export default function GuiaInterpretacion() {
         </ul>
         </nav>
 
-        <section id="energia" className="my-4">
+        <section id="energia" className="my-4 guia-interpretacion-section">
         <h2>Energía</h2>
         <section id="energia-1-1">
             <details>
@@ -91,7 +92,7 @@ export default function GuiaInterpretacion() {
         </section>
         </section>
 
-        <section id="agua" className="my-4">
+        <section id="agua" className="my-4 guia-interpretacion-section">
         <h2>Agua</h2>
         <section id="agua-2-1">
             <details>
@@ -143,7 +144,7 @@ export default function GuiaInterpretacion() {
         </section>
         </section>
 
-        <section id="residuos" className="my-4">
+        <section id="residuos" className="my-4 guia-interpretacion-section">
         <h2>Residuos</h2>
         <section id="residuos-3-1">
             <details>
@@ -183,7 +184,7 @@ export default function GuiaInterpretacion() {
         </section>
         </section>
 
-        <section id="espacios-verdes" className="my-4">
+        <section id="espacios-verdes" className="my-4 guia-interpretacion-section">
         <h2>Espacios Verdes</h2>
         <section id="espacios-verdes-4-1">
             <details>
@@ -235,7 +236,7 @@ export default function GuiaInterpretacion() {
         </section>
         </section>
 
-        <section id="gestion-integral" className="my-4">
+        <section id="gestion-integral" className="my-4 guia-interpretacion-section">
         <h2>Gestión Integral</h2>
         <section id="gestion-integral-5-1">
             <details>
@@ -275,10 +276,17 @@ export default function GuiaInterpretacion() {
         </section>
         </section>
 
-        <section id="recursos" className="my-4">
+        <section id="recursos" className="my-4 guia-interpretacion-section">
         <h2>Recursos</h2>
-        <p><a href="">Guía de recomendaciones</a></p>
-        {/*cambiar a link que quiero redirijir: https://docs.google.com/document/d/1stbDB9yqd327vpGTCxqrWnXcQOaFN1gK9gnmVa6P5AQ/edit?tab=t.0 */}
+        <p>
+            <a
+            href="https://docs.google.com/document/d/1stbDB9yqd327vpGTCxqrWnXcQOaFN1gK9gnmVa6P5AQ/edit?tab=t.0"
+            target="_blank"
+            rel="noopener noreferrer"
+            >
+            Guía de recomendaciones
+            </a>
+        </p>
         </section>
     </div>
     );
