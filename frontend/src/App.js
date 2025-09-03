@@ -13,6 +13,8 @@ import RespuestasDetalladas from './components/RespuestasDetalladas';
 import Resultados from './components/Resultados';
 // EditarEvaluacion.jsx lo actualizamos para aceptar :id
 import EditarEvaluacion from './components/EditarEvaluacion';
+// Pestaña estatica
+import GuiaInterpretacion from './components/GuiaInterpretacion';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
@@ -35,6 +37,7 @@ function App() {
               <Route path="/resultados/:id" element={<Resultados />} />
               <Route path="/respuestas/:id" element={<RespuestasDetalladas />} />
               <Route path="/editar/:id" element={<EditarEvaluacion />} />
+              <Route path="/guia-interpretacion" element={<GuiaInterpretacion />} />
             </Routes>
           </div>
         </div>

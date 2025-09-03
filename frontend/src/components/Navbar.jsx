@@ -18,6 +18,7 @@ export default function Navbar() {
             <ul className="navbar-nav me-auto mb-2 mb-lg-0">
                 <li className="nav-item"><NavLink end to="/" className="nav-link">Barrios</NavLink></li>
                 <li className="nav-item"><NavLink to="/nueva-evaluacion" className="nav-link">Nueva evaluación</NavLink></li>
+                <li className="nav-item"><NavLink to="/guia-interpretacion" className="nav-link">Guía de interpretación</NavLink></li>
             </ul>
             </div>
         </div>
