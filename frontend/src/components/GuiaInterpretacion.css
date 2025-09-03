@@ -31,11 +31,18 @@
 .guia-interpretacion-section {
     margin-bottom: 1.5rem;
     padding: 1rem;
-    background-color: #f8fcf8;
+    background-color: #f8fcf8; /* color por defecto */
     border-left: 4px solid var(--color-secondary-green);
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
+
+/* Colores específicos por eje */
+.guia-interpretacion-section.section-energia { background-color: #faf2ad; }
+.guia-interpretacion-section.section-agua { background-color: #b9e2ff; }
+.guia-interpretacion-section.section-residuos { background-color: #c79c63; }
+.guia-interpretacion-section.section-ev { background-color: #a0e9a0; }
+.guia-interpretacion-section.section-gestion { background-color: #f8a46c; }
 
 .guia-interpretacion-section summary {
     font-weight: 600;

@@ -33,7 +33,7 @@ export default function GuiaInterpretacion() {
         </ul>
         </nav>
 
-        <section id="energia" className="my-4 guia-interpretacion-section">
+        <section id="energia" className="my-4 guia-interpretacion-section section-energia">
         <h2>Energía</h2>
         <section id="energia-1-1">
             <details>
@@ -92,7 +92,7 @@ export default function GuiaInterpretacion() {
         </section>
         </section>
 
-        <section id="agua" className="my-4 guia-interpretacion-section">
+        <section id="agua" className="my-4 guia-interpretacion-section section-agua">
         <h2>Agua</h2>
         <section id="agua-2-1">
             <details>
@@ -144,7 +144,7 @@ export default function GuiaInterpretacion() {
         </section>
         </section>
 
-        <section id="residuos" className="my-4 guia-interpretacion-section">
+        <section id="residuos" className="my-4 guia-interpretacion-section section-residuos">
         <h2>Residuos</h2>
         <section id="residuos-3-1">
             <details>
@@ -184,7 +184,7 @@ export default function GuiaInterpretacion() {
         </section>
         </section>
 
-        <section id="espacios-verdes" className="my-4 guia-interpretacion-section">
+        <section id="espacios-verdes" className="my-4 guia-interpretacion-section section-ev">
         <h2>Espacios Verdes</h2>
         <section id="espacios-verdes-4-1">
             <details>
@@ -236,7 +236,7 @@ export default function GuiaInterpretacion() {
         </section>
         </section>
 
-        <section id="gestion-integral" className="my-4 guia-interpretacion-section">
+        <section id="gestion-integral" className="my-4 guia-interpretacion-section section-gestion">
         <h2>Gestión Integral</h2>
         <section id="gestion-integral-5-1">
             <details>
