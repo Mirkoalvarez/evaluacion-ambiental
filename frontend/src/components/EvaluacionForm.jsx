@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { crearEvaluacion } from '../features/evaluacionesSlice';
+import { listarBarrios } from '../features/barriosSlice';
 import { useNavigate } from 'react-router-dom';
 
 const SINO = ['Sí', 'No'];
@@ -54,10 +55,11 @@ export default function EvaluacionForm() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { creando, error } = useSelector(s => s.evaluaciones);
+    const { items: barrios } = useSelector(s => s.barrios);
 
     const [form, setForm] = useState({
         barrio_id: '',
-        fecha: hoy(), // 👈 por defecto hoy
+        fecha: hoy(), // por defecto hoy
         // ENERGÍA
         e1_1:'Sí', e1_2:'Sí', e1_3:'Sí', e1_4:'Parcial', e1_5:'Parcial', e1_6:'Sí', e1_7:'No', e1_8:'No', e1_9:'No',
         // AGUA
@@ -75,9 +77,15 @@ export default function EvaluacionForm() {
         setForm(f => ({ ...f, [name]: name === 'r3_3' ? (value === '' ? '' : Number(value)) : value }));
     };
 
+    useEffect(() => {
+        if (!barrios || barrios.length === 0) {
+            dispatch(listarBarrios());
+        }
+    }, [barrios, dispatch]);
+
     const onSubmit = (e) => {
         e.preventDefault();
-        if (!form.barrio_id.trim()) return alert('Ingresá el nombre del barrio');
+        if (!form.barrio_id) return alert('Selecciona un barrio');
         dispatch(crearEvaluacion(form)).unwrap()
         .then(ev => navigate(`/resultados/${ev.id}`))
         .catch(() => {});
@@ -103,8 +111,19 @@ export default function EvaluacionForm() {
         <form onSubmit={onSubmit} className="row g-3">
             {/* Barrio y Fecha */}
             <div className="col-12">
-                <label className="form-label">Barrio (nombre)</label>
-                <input className="form-control" name="barrio_id" value={form.barrio_id} onChange={onChange} required />
+                <label className="form-label">Barrio</label>
+                <select
+                    className="form-select"
+                    name="barrio_id"
+                    value={form.barrio_id}
+                    onChange={onChange}
+                    required
+                >
+                    <option value="">Selecciona un barrio</option>
+                    {barrios.map((b) => (
+                        <option key={b.id} value={b.id}>{b.nombre}</option>
+                    ))}
+                </select>
                 </div>
                 <div className="col-md-4">
                 <label className="form-label">Fecha</label>
@@ -118,7 +137,7 @@ export default function EvaluacionForm() {
                 />
             </div>
 
-            {/* ENERGÍA 1.1→1.9 */}
+            {/* ENERGÍA 1.1—1.9 */}
             <div className="col-12 mt-4">
                 <div className="section-energia">
                     <h5 className="mb-3">Energía <span role="img" aria-label="energy">⚡</span></h5>
@@ -142,31 +161,21 @@ export default function EvaluacionForm() {
                 </div>
             </div>
 
-            {/* AGUA 2.1→2.8 */}
+            {/* AGUA 2.1—2.8 */}
             <div className="col-12 mt-4">
                 <div className="section-agua">
                     <h5 className="mb-3">Agua <span role="img" aria-label="water">💧</span></h5>
                     <div className="row g-3">
-                    {['a2_1', 'a2_2'].map(name => (
-                        <div className="col-md-4" key={name}>
-                        {renderQuestion(name, SINO)}
+                        {['a2_1','a2_2','a2_3','a2_4','a2_5','a2_6','a2_7','a2_8'].map(name => (
+                        <div className="col-md-3" key={name}>
+                            {renderQuestion(name, SINO)}
                         </div>
-                    ))}
-                    {['a2_3', 'a2_4'].map(name => (
-                        <div className="col-md-4" key={name}>
-                        {renderQuestion(name, name === 'a2_4' ? NPT_NA : NPT)}
-                        </div>
-                    ))}
-                    {['a2_5', 'a2_6', 'a2_7', 'a2_8'].map(name => (
-                        <div className="col-md-4" key={name}>
-                        {renderQuestion(name, ['a2_5','a2_6'].includes(name) ? SINO_NA : SINO)}
-                        </div>
-                    ))}
+                        ))}
                     </div>
                 </div>
             </div>
 
-            {/* RESIDUOS 3.1→3.6 */}
+            {/* RESIDUOS 3.1—3.6 */}
             <div className="col-12 mt-4">
                 <div className="section-residuos">
                     <h5 className="mb-3">Residuos <span role="img" aria-label="recycle">♻️</span></h5>
@@ -197,7 +206,7 @@ export default function EvaluacionForm() {
                 </div>
             </div>
 
-            {/* EV 4.1→4.8 */}
+            {/* EV 4.1—4.8 */}
             <div className="col-12 mt-4">
                 <div className="section-ev">
                     <h5 className="mb-3">Espacios Verdes <span role="img" aria-label="tree">🌳</span></h5>
@@ -214,7 +223,7 @@ export default function EvaluacionForm() {
                 </div>
             </div>
 
-            {/* GESTIÓN 5.1→5.6 */}
+            {/* GESTIÓN 5.1—5.6 */}
             <div className="col-12 mt-4">
                 <div className="section-gestion">
                     <h5 className="mb-3">Gestión Integral <span role="img" aria-label="chart">📊</span></h5>

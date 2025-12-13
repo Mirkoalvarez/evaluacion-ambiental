@@ -5,63 +5,118 @@ export const listarBarrios = createAsyncThunk(
     'barrios/listar',
     async (_, { rejectWithValue }) => {
         try {
-        const { data } = await api.get('/barrios');
-        return data;
+            const { data } = await api.get('/barrios');
+            return data;
         } catch (e) {
-        return rejectWithValue(e?.response?.data || { error: 'Error al listar barrios' });
+            return rejectWithValue(e?.response?.data || { error: 'Error al listar barrios' });
         }
     }
 );
 
-// NUEVO: evaluaciones de un barrio
+export const crearBarrio = createAsyncThunk(
+    'barrios/crear',
+    async (payload, { rejectWithValue }) => {
+        try {
+            const { data } = await api.post('/barrios', payload);
+            return data;
+        } catch (e) {
+            return rejectWithValue(e?.response?.data || { error: 'Error al crear barrio' });
+        }
+    }
+);
+
 export const listarEvaluacionesDeBarrio = createAsyncThunk(
     'barrios/listarEvaluacionesDeBarrio',
     async (barrioId, { rejectWithValue }) => {
         try {
-        const { data } = await api.get(`/barrios/${barrioId}/evaluaciones`);
-        return { barrioId, evaluaciones: data };
+            const { data } = await api.get(`/barrios/${barrioId}/evaluaciones`);
+            return { barrioId, evaluaciones: data };
         } catch (e) {
-        return rejectWithValue(e?.response?.data || { error: 'Error al listar evaluaciones del barrio' });
+            return rejectWithValue(e?.response?.data || { error: 'Error al listar evaluaciones del barrio' });
         }
     }
 );
 
+export const listarIntegrantes = createAsyncThunk(
+    'barrios/listarIntegrantes',
+    async (barrioId, { rejectWithValue }) => {
+        try {
+            const { data } = await api.get(`/barrios/${barrioId}/integrantes`);
+            return { barrioId, integrantes: data };
+        } catch (e) {
+            return rejectWithValue(e?.response?.data || { error: 'Error al listar integrantes' });
+        }
+    }
+);
 
-// 🔹 NUEVO: renombrar un barrio (PATCH /api/barrios/:id { nombre })
+export const agregarIntegrante = createAsyncThunk(
+    'barrios/agregarIntegrante',
+    async ({ barrioId, user_id, puede_editar_todas }, { rejectWithValue }) => {
+        try {
+            const { data } = await api.post(`/barrios/${barrioId}/integrantes`, { user_id, puede_editar_todas });
+            return { barrioId, integrante: data };
+        } catch (e) {
+            return rejectWithValue(e?.response?.data || { error: 'No se pudo agregar integrante' });
+        }
+    }
+);
+
+export const actualizarIntegrante = createAsyncThunk(
+    'barrios/actualizarIntegrante',
+    async ({ barrioId, user_id, puede_editar_todas }, { rejectWithValue }) => {
+        try {
+            const { data } = await api.patch(`/barrios/${barrioId}/integrantes/${user_id}`, { puede_editar_todas });
+            return { barrioId, integrante: data };
+        } catch (e) {
+            return rejectWithValue(e?.response?.data || { error: 'No se pudo actualizar integrante' });
+        }
+    }
+);
+
+export const eliminarIntegrante = createAsyncThunk(
+    'barrios/eliminarIntegrante',
+    async ({ barrioId, user_id }, { rejectWithValue }) => {
+        try {
+            const { data } = await api.delete(`/barrios/${barrioId}/integrantes/${user_id}`);
+            return { barrioId, user_id, ok: data?.ok };
+        } catch (e) {
+            return rejectWithValue(e?.response?.data || { error: 'No se pudo eliminar integrante' });
+        }
+    }
+);
+
 export const updateBarrioNombre = createAsyncThunk(
     'barrios/updateNombre',
     async ({ id, nombre }, { rejectWithValue }) => {
         try {
-        const { data } = await api.patch(`/barrios/${id}`, { nombre });
-        return data; // devuelve el barrio actualizado
+            const { data } = await api.patch(`/barrios/${id}`, { nombre });
+            return data; // devuelve el barrio actualizado
         } catch (e) {
-        return rejectWithValue(e?.response?.data || { error: 'No se pudo renombrar el barrio' });
+            return rejectWithValue(e?.response?.data || { error: 'No se pudo renombrar el barrio' });
         }
     }
 );
 
-// 🔴 eliminar barrio (y sus evaluaciones)
 export const eliminarBarrio = createAsyncThunk(
     'barrios/eliminarBarrio',
     async (id, { rejectWithValue }) => {
         try {
-        const { data } = await api.delete(`/barrios/${id}`);
-        return { id, ok: data?.ok };
+            const { data } = await api.delete(`/barrios/${id}`);
+            return { id, ok: data?.ok };
         } catch (e) {
-        return rejectWithValue(e?.response?.data || { error: 'No se pudo eliminar el barrio' });
+            return rejectWithValue(e?.response?.data || { error: 'No se pudo eliminar el barrio' });
         }
     }
 );
 
-// 🟠 eliminar última evaluación del barrio
 export const eliminarUltimaEvaluacion = createAsyncThunk(
     'barrios/eliminarUltimaEvaluacion',
     async (id, { rejectWithValue }) => {
         try {
-        const { data } = await api.delete(`/barrios/${id}/evaluaciones/ultima`);
-        return { id, ok: data?.ok };
+            const { data } = await api.delete(`/barrios/${id}/evaluaciones/ultima`);
+            return { id, ok: data?.ok };
         } catch (e) {
-        return rejectWithValue(e?.response?.data || { error: 'No se pudo eliminar la última evaluación' });
+            return rejectWithValue(e?.response?.data || { error: 'No se pudo eliminar la última evaluación' });
         }
     }
 );
@@ -71,12 +126,21 @@ const slice = createSlice({
     initialState: {
         items: [],
         evaluaciones: {},
+        integrantes: {},
         cargando: false,
         error: null
     },
     reducers: {},
     extraReducers: (builder) => {
         builder
+        // crearBarrio
+        .addCase(crearBarrio.pending, (s) => { s.cargando = true; s.error = null; })
+        .addCase(crearBarrio.fulfilled, (s, a) => {
+            s.cargando = false;
+            s.items.push(a.payload);
+        })
+        .addCase(crearBarrio.rejected, (s, a) => { s.cargando = false; s.error = a.payload?.error || 'Error'; })
+
         // listarBarrios
         .addCase(listarBarrios.pending, (s) => { s.cargando = true; s.error = null; })
         .addCase(listarBarrios.fulfilled, (s, a) => { s.cargando = false; s.items = a.payload; })
@@ -92,7 +156,7 @@ const slice = createSlice({
             s.cargando = false; s.error = a.payload?.error || 'Error';
         })
 
-        // 🔹 NUEVO: updateBarrioNombre
+        // updateBarrioNombre
         .addCase(updateBarrioNombre.pending, (s) => { s.cargando = true; s.error = null; })
         .addCase(updateBarrioNombre.fulfilled, (s, a) => {
             s.cargando = false;
@@ -108,10 +172,54 @@ const slice = createSlice({
         //Eliminar Barrio
         .addCase(eliminarBarrio.fulfilled, (s, a) => {
             if (a.payload?.ok) s.items = s.items.filter(b => b.id !== a.payload.id);
-            })
+        })
         .addCase(eliminarUltimaEvaluacion.fulfilled, (s, a) => {
-            // No modificamos items acá; tras borrar última evaluación, el resultado_total del barrio pudo cambiar.
-            // Volvemos a listar para refrescar card.
+            // No modificamos items aquí; tras borrar última evaluación, el resultado_total del barrio pudo cambiar.
+        })
+
+        // Integrantes
+        .addCase(listarIntegrantes.pending, (s, a) => {
+            const id = a.meta.arg;
+            s.integrantes[id] = s.integrantes[id] || { items: [], status: 'idle', error: null };
+            s.integrantes[id].status = 'loading';
+            s.integrantes[id].error = null;
+        })
+        .addCase(listarIntegrantes.fulfilled, (s, a) => {
+            s.integrantes[a.payload.barrioId] = {
+                items: a.payload.integrantes,
+                status: 'succeeded',
+                error: null
+            };
+        })
+        .addCase(listarIntegrantes.rejected, (s, a) => {
+            const id = a.meta.arg;
+            s.integrantes[id] = s.integrantes[id] || { items: [], status: 'idle', error: null };
+            s.integrantes[id].status = 'failed';
+            s.integrantes[id].error = a.payload?.error || 'Error';
+        })
+        .addCase(agregarIntegrante.fulfilled, (s, a) => {
+            const { barrioId, integrante } = a.payload;
+            const slot = s.integrantes[barrioId] || { items: [], status: 'idle', error: null };
+            const ix = slot.items.findIndex((m) => m.user_id === integrante.user_id);
+            if (ix >= 0) slot.items[ix] = integrante;
+            else slot.items.push(integrante);
+            s.integrantes[barrioId] = { ...slot, status: 'succeeded', error: null };
+        })
+        .addCase(actualizarIntegrante.fulfilled, (s, a) => {
+            const { barrioId, integrante } = a.payload;
+            const slot = s.integrantes[barrioId];
+            if (slot) {
+                const ix = slot.items.findIndex((m) => m.user_id === integrante.user_id);
+                if (ix >= 0) slot.items[ix] = { ...slot.items[ix], ...integrante };
+            }
+        })
+        .addCase(eliminarIntegrante.fulfilled, (s, a) => {
+            const { barrioId, user_id, ok } = a.payload;
+            if (!ok) return;
+            const slot = s.integrantes[barrioId];
+            if (slot) {
+                slot.items = slot.items.filter((m) => m.user_id !== Number(user_id));
+            }
         });
     }
 });

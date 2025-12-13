@@ -6,6 +6,8 @@ module.exports = (sequelize) => {
     const Evaluacion = sequelize.define('Evaluacion', {
         // FK
         barrio_id: { type: DataTypes.INTEGER, allowNull: false },
+        creado_por: { type: DataTypes.INTEGER, allowNull: true },  // compatibilidad; se setea al crear
+        editado_por: { type: DataTypes.INTEGER, allowNull: true },
 
         // 1. Energía (e1_6 es Sí/No)
         e1_1: DataTypes.STRING, e1_2: DataTypes.STRING, e1_3: DataTypes.STRING,

@@ -5,17 +5,18 @@ const router = express.Router();
 const evaluacionController = require('../controllers/evaluacionController');
 const validarEvaluacion = require('../middlewares/validacionEvaluacion');           // para POST
 const validarEvaluacionPatch = require('../middlewares/validacionEvaluacionPatch'); // para PATCH
+const { auth } = require('../middlewares/auth');
 
 // Crear evaluación
-router.post('/', validarEvaluacion, evaluacionController.createEvaluacion);
+router.post('/', auth, validarEvaluacion, evaluacionController.createEvaluacion);
 
 // Obtener evaluación por id
-router.get('/:id', evaluacionController.getEvaluacionById);
+router.get('/:id', auth, evaluacionController.getEvaluacionById);
 
 // Actualizar parcialmente una evaluación existente
-router.patch('/:id', validarEvaluacionPatch, evaluacionController.patchEvaluacionById);
+router.patch('/:id', auth, validarEvaluacionPatch, evaluacionController.patchEvaluacionById);
 
 //DELETE
-router.delete('/:id', evaluacionController.deleteEvaluacionById);
+router.delete('/:id', auth, evaluacionController.deleteEvaluacionById);
 
 module.exports = router;

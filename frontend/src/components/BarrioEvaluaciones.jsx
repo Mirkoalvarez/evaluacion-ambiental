@@ -29,7 +29,7 @@ export default function BarrioEvaluaciones() {
             {list.map(ev => (
                 <Link
                 key={ev.id}
-                to={`/evaluaciones/${ev.id}`}
+                to={`/resultados/${ev.id}`}
                 className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                 >
                 <span>
