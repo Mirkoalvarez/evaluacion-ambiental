@@ -5,6 +5,7 @@ import { listarBarrios, eliminarBarrio, crearBarrio } from '../features/barriosS
 import { fetchUsers } from '../features/authSlice';
 import { Link } from 'react-router-dom';
 import BarrioIntegrantes from './BarrioIntegrantes';
+import { useMemo } from 'react';
 
 export default function BarrioList() {
     const dispatch = useDispatch();
@@ -13,6 +14,8 @@ export default function BarrioList() {
     const [nuevoBarrio, setNuevoBarrio] = useState('');
     const [moderadorId, setModeradorId] = useState('');
     const [expandido, setExpandido] = useState(null);
+    const [busquedaNombre, setBusquedaNombre] = useState('');
+    const [busquedaAutor, setBusquedaAutor] = useState('');
 
     useEffect(() => { dispatch(listarBarrios()); }, [dispatch]);
     useEffect(() => {
@@ -29,6 +32,17 @@ export default function BarrioList() {
 
     const badgeClass = (letra) =>
         letra === 'A' ? 'bg-success' : letra === 'B' ? 'bg-warning text-dark' : 'bg-danger';
+
+    const filtrados = useMemo(() => {
+        const nombre = busquedaNombre.trim().toLowerCase();
+        const autor = busquedaAutor.trim().toLowerCase();
+        return items.filter((b) => {
+            const matchNombre = nombre ? b.nombre.toLowerCase().includes(nombre) : true;
+            const autorTexto = (b.autor?.username || b.autor?.email || '').toLowerCase();
+            const matchAutor = autor ? autorTexto.includes(autor) : true;
+            return matchNombre && matchAutor;
+        });
+    }, [items, busquedaNombre, busquedaAutor]);
 
     const puedeCrearSinModerador = user?.role === 'moderador';
     const moderadores = users?.filter((u) => u.role === 'moderador') || [];
@@ -102,11 +116,38 @@ export default function BarrioList() {
                 </div>
             </div>
 
+            <div className="card mb-3">
+                <div className="card-body">
+                    <div className="row g-2">
+                        <div className="col-md-6">
+                            <label className="form-label">Buscar barrio</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={busquedaNombre}
+                                onChange={(e) => setBusquedaNombre(e.target.value)}
+                                placeholder="Nombre del barrio"
+                            />
+                        </div>
+                        <div className="col-md-6">
+                            <label className="form-label">Autor</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={busquedaAutor}
+                                onChange={(e) => setBusquedaAutor(e.target.value)}
+                                placeholder="Username o email del autor"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             {cargando && <p>Cargando…</p>}
             {error && <div className="alert alert-danger">{error}</div>}
 
             <div className="row g-3">
-                {items.map(b => (
+                {filtrados.map(b => (
                 <div className="col-md-4" key={b.id}>
                     <div className="card">
                     <div className="card-body">
