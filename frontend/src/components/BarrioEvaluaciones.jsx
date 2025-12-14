@@ -30,12 +30,17 @@ export default function BarrioEvaluaciones() {
                 <Link
                 key={ev.id}
                 to={`/resultados/${ev.id}`}
-                className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
+                className="list-group-item list-group-item-action"
                 >
-                <span>
-                    <strong>#{ev.id}</strong> — {new Date(ev.fecha).toLocaleDateString()}
-                </span>
-                <span className="badge bg-primary rounded-pill">{ev.resultado_total ?? '—'}</span>
+                <div className="d-flex justify-content-between">
+                    <div>
+                    <strong>#{ev.id}</strong> — {ev.fecha ? new Date(ev.fecha).toLocaleDateString() : '—'}
+                    </div>
+                    <span className="badge bg-primary rounded-pill">{ev.resultado_total ?? '—'}</span>
+                </div>
+                <div className="small text-muted mt-1">
+                    Creado por: {ev.creador?.username || ev.creador?.email || '—'} • Editado por: {ev.editor?.username || ev.editor?.email || '—'}
+                </div>
                 </Link>
             ))}
             </div>

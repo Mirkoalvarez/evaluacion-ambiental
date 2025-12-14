@@ -142,6 +142,10 @@ const barrioController = {
 
             const evaluaciones = await Evaluacion.findAll({
                 where: { barrio_id: barrioId },
+                include: [
+                    { association: 'creador', attributes: ['id', 'username', 'email', 'role'] },
+                    { association: 'editor', attributes: ['id', 'username', 'email', 'role'] },
+                ],
                 order: [
                     ['fecha', 'DESC'],        // si usas DATEONLY en Evaluacion
                     ['created_at', 'DESC'],
