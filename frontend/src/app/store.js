@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
-import evaluacionesReducer from '../features/evaluacionesSlice';
-import barriosReducer from '../features/barriosSlice';
-import authReducer from '../features/authSlice';
+import evaluacionesReducer from '../features/evaluaciones/slice';
+import barriosReducer from '../features/barrios/slice';
+import authReducer from '../features/auth/slice';
 
 const store = configureStore({
     reducer: {

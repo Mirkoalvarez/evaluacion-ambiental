@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../features/authSlice';
+import { logout } from '../../features/auth/slice';
 
 export default function Navbar() {
     const { user } = useSelector((state) => state.auth);

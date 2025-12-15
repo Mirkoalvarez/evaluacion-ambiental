@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers, updateUserRemote, deleteUserRemote, createUserAdmin } from '../features/authSlice';
+import { fetchUsers, updateUserRemote, deleteUserRemote, createUserAdmin } from '../slice';
 
 export default function UserList() {
     const dispatch = useDispatch();
@@ -25,17 +25,8 @@ export default function UserList() {
         );
     }
 
-    const startEdit = (u) => {
-        setSelected({ ...u });
-        setMessage('');
-        setErrorMsg('');
-    };
-
-    const cancelEdit = () => {
-        setSelected(null);
-        setMessage('');
-        setErrorMsg('');
-    };
+    const startEdit = (u) => { setSelected({ ...u }); setMessage(''); setErrorMsg(''); };
+    const cancelEdit = () => { setSelected(null); setMessage(''); setErrorMsg(''); };
 
     const saveUser = async (e) => {
         e.preventDefault();
@@ -43,9 +34,8 @@ export default function UserList() {
         const username = selected.username.trim().replace(/\s+/g, ' ');
         const email = selected.email.trim();
         if (!username || !email) return setErrorMsg('Username y email son obligatorios');
-        if (!/^[\wáéíóúñüÁÉÍÓÚÑÜ .-]+$/.test(username)) return setErrorMsg('Username contiene caracteres no permitidos');
-        setMessage('');
-        setErrorMsg('');
+        if (!/^[\wáéíóúÁÉÍÓÚñÑüÜ0-9 .-]+$/.test(username)) return setErrorMsg('Username contiene caracteres no permitidos');
+        setMessage(''); setErrorMsg('');
         const res = await dispatch(updateUserRemote({
             id: selected.id,
             username,
@@ -53,25 +43,16 @@ export default function UserList() {
             role: selected.role,
             password: newPassword ? newPassword.trim() : undefined,
         }));
-        if (res.error) {
-            setErrorMsg(res.payload?.error || 'Error al guardar');
-        } else {
-            setMessage('Usuario actualizado');
-            setSelected(null);
-            setNewPassword('');
-        }
+        if (res.error) setErrorMsg(res.payload?.error || 'Error al guardar');
+        else { setMessage('Usuario actualizado'); setSelected(null); setNewPassword(''); }
     };
 
     const deleteUser = async (id) => {
         if (!window.confirm('¿Eliminar este usuario?')) return;
-        setMessage('');
-        setErrorMsg('');
+        setMessage(''); setErrorMsg('');
         const res = await dispatch(deleteUserRemote(id));
-        if (res.error) {
-            setErrorMsg(res.payload?.error || 'No se pudo eliminar');
-        } else {
-            setMessage('Usuario eliminado');
-        }
+        if (res.error) setErrorMsg(res.payload?.error || 'No se pudo eliminar');
+        else setMessage('Usuario eliminado');
     };
 
     const createUser = async (e) => {
@@ -80,16 +61,11 @@ export default function UserList() {
         const email = newUser.email.trim();
         const password = newUser.password.trim();
         if (!username || !email || !password) return setErrorMsg('Completa username, email y contraseña');
-        if (!/^[\wáéíóúñüÁÉÍÓÚÑÜ .-]+$/.test(username)) return setErrorMsg('Username contiene caracteres no permitidos');
-        setMessage('');
-        setErrorMsg('');
+        if (!/^[\wáéíóúÁÉÍÓÚñÑüÜ0-9 .-]+$/.test(username)) return setErrorMsg('Username contiene caracteres no permitidos');
+        setMessage(''); setErrorMsg('');
         const res = await dispatch(createUserAdmin({ ...newUser, username, email, password }));
-        if (res.error) {
-            setErrorMsg(res.payload?.error || 'No se pudo crear usuario');
-        } else {
-            setMessage('Usuario creado');
-            setNewUser({ username: '', email: '', password: '', role: 'user' });
-        }
+        if (res.error) setErrorMsg(res.payload?.error || 'No se pudo crear usuario');
+        else { setMessage('Usuario creado'); setNewUser({ username: '', email: '', password: '', role: 'user' }); }
     };
 
     return (
@@ -109,40 +85,19 @@ export default function UserList() {
                     <form className="row g-3" onSubmit={createUser}>
                         <div className="col-md-3">
                             <label className="form-label">Username</label>
-                            <input
-                                className="form-control"
-                                value={newUser.username}
-                                onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
-                                required
-                            />
+                            <input className="form-control" value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} required />
                         </div>
                         <div className="col-md-3">
                             <label className="form-label">Email</label>
-                            <input
-                                type="email"
-                                className="form-control"
-                                value={newUser.email}
-                                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
-                                required
-                            />
+                            <input type="email" className="form-control" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required />
                         </div>
                         <div className="col-md-3">
                             <label className="form-label">Contraseña</label>
-                            <input
-                                type="password"
-                                className="form-control"
-                                value={newUser.password}
-                                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                                required
-                            />
+                            <input type="password" className="form-control" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required />
                         </div>
                         <div className="col-md-2">
                             <label className="form-label">Rol</label>
-                            <select
-                                className="form-select"
-                                value={newUser.role}
-                                onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-                            >
+                            <select className="form-select" value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}>
                                 <option value="admin">admin</option>
                                 <option value="moderador">moderador</option>
                                 <option value="user">user</option>
@@ -167,12 +122,8 @@ export default function UserList() {
                         </tr>
                     </thead>
                     <tbody>
-                        {usersStatus === 'loading' && (
-                            <tr><td colSpan="5" className="text-muted">Cargando...</td></tr>
-                        )}
-                        {usersStatus === 'succeeded' && users.length === 0 && (
-                            <tr><td colSpan="5" className="text-muted">No hay usuarios.</td></tr>
-                        )}
+                        {usersStatus === 'loading' && <tr><td colSpan="5" className="text-muted">Cargando...</td></tr>}
+                        {usersStatus === 'succeeded' && users.length === 0 && <tr><td colSpan="5" className="text-muted">No hay usuarios.</td></tr>}
                         {usersStatus === 'succeeded' && users.map((u) => (
                             <tr key={u.id}>
                                 <td>{u.id}</td>
@@ -196,30 +147,15 @@ export default function UserList() {
                         <form onSubmit={saveUser} className="row g-3">
                             <div className="col-md-4">
                                 <label className="form-label">Username</label>
-                                <input
-                                    className="form-control"
-                                    value={selected.username}
-                                    onChange={(e) => setSelected({ ...selected, username: e.target.value })}
-                                    required
-                                />
+                                <input className="form-control" value={selected.username} onChange={(e) => setSelected({ ...selected, username: e.target.value })} required />
                             </div>
                             <div className="col-md-4">
                                 <label className="form-label">Email</label>
-                                <input
-                                    type="email"
-                                    className="form-control"
-                                    value={selected.email}
-                                    onChange={(e) => setSelected({ ...selected, email: e.target.value })}
-                                    required
-                                />
+                                <input type="email" className="form-control" value={selected.email} onChange={(e) => setSelected({ ...selected, email: e.target.value })} required />
                             </div>
                             <div className="col-md-4">
                                 <label className="form-label">Rol</label>
-                                <select
-                                    className="form-select"
-                                    value={selected.role}
-                                    onChange={(e) => setSelected({ ...selected, role: e.target.value })}
-                                >
+                                <select className="form-select" value={selected.role} onChange={(e) => setSelected({ ...selected, role: e.target.value })}>
                                     <option value="admin">admin</option>
                                     <option value="moderador">moderador</option>
                                     <option value="user">user</option>
@@ -227,13 +163,7 @@ export default function UserList() {
                             </div>
                             <div className="col-md-4">
                                 <label className="form-label">Nueva contraseña (opcional)</label>
-                                <input
-                                    type="password"
-                                    className="form-control"
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    placeholder="Dejar en blanco para no cambiar"
-                                />
+                                <input type="password" className="form-control" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Dejar en blanco para no cambiar" />
                             </div>
                             <div className="col-12 d-flex gap-2">
                                 <button className="btn btn-success" type="submit">Guardar</button>

@@ -1,16 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { obtenerEvaluacion, listarArchivosEvaluacion, subirArchivoEvaluacion, eliminarArchivoEvaluacion } from '../features/evaluacionesSlice';
+import { obtenerEvaluacion, listarArchivosEvaluacion, subirArchivoEvaluacion, eliminarArchivoEvaluacion } from '../slice';
 
-const categoryIcons = {
-    Energia: '⚡',
-    Agua: '💧',
-    Residuos: '♻️',
-    'Espacios Verdes': '🌳',
-    Gestion: '📊',
-};
-
+const categoryIcons = { Energia: '⚡', Agua: '💧', Residuos: '♻️', 'Espacios Verdes': '🌳', Gestion: '📊' };
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 const FILE_BASE = API_BASE.replace(/\/api$/, '');
 
@@ -22,9 +15,7 @@ export default function Resultados() {
     const [subiendo, setSubiendo] = useState(false);
 
     useEffect(() => {
-        dispatch(obtenerEvaluacion(id)).then(() => {
-            dispatch(listarArchivosEvaluacion(id));
-        });
+        dispatch(obtenerEvaluacion(id)).then(() => dispatch(listarArchivosEvaluacion(id)));
     }, [dispatch, id]);
 
     if (cargando) return <div className="container"><p className="text-info">Cargando resultados...</p></div>;
@@ -63,24 +54,18 @@ export default function Resultados() {
             await dispatch(subirArchivoEvaluacion({ id: actual.id, file: archivo })).unwrap();
             await dispatch(listarArchivosEvaluacion(actual.id));
             setArchivo(null);
-        } catch (err) {
-            // handled by slice
         } finally {
             setSubiendo(false);
         }
     };
 
-    const archivos = actual.archivos || [];
-
     const onEliminarArchivo = async (archivoId) => {
         if (!window.confirm('¿Eliminar este archivo adjunto?')) return;
-        try {
-            await dispatch(eliminarArchivoEvaluacion({ archivoId })).unwrap();
-            await dispatch(listarArchivosEvaluacion(actual.id));
-        } catch (err) {
-            // manejado por slice
-        }
+        await dispatch(eliminarArchivoEvaluacion({ archivoId })).unwrap();
+        await dispatch(listarArchivosEvaluacion(actual.id));
     };
+
+    const archivos = actual.archivos || [];
 
     return (
         <div className="container">
@@ -116,9 +101,7 @@ export default function Resultados() {
                     </h5>
                     <p className="card-text">Letra: <strong>{actual.resultado_total}</strong></p>
                     <p className="card-text">Puntaje 1-10: <strong>{actual.puntaje_final}</strong></p>
-                    <p className="text-muted small mt-3">
-                        Fecha de evaluación: {actual.fecha ? new Date(actual.fecha).toLocaleDateString() : '—'}
-                    </p>
+                    <p className="text-muted small mt-3">Fecha de evaluación: {actual.fecha ? new Date(actual.fecha).toLocaleDateString() : '—'}</p>
                 </div>
             </div>
 
@@ -151,11 +134,7 @@ export default function Resultados() {
                                         <a className="btn btn-sm btn-outline-secondary" href={`${FILE_BASE}${a.path}`} target="_blank" rel="noopener noreferrer">
                                             Descargar
                                         </a>
-                                        <button
-                                            type="button"
-                                            className="btn btn-sm btn-outline-danger"
-                                            onClick={() => onEliminarArchivo(a.id)}
-                                        >
+                                        <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => onEliminarArchivo(a.id)}>
                                             Eliminar
                                         </button>
                                     </div>

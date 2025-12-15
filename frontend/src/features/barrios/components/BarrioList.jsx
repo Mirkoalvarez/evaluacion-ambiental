@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { listarBarrios, eliminarBarrio, crearBarrio, subirImagenBarrio, eliminarImagenBarrio } from '../features/barriosSlice';
-import { fetchUsers } from '../features/authSlice';
+import { listarBarrios, eliminarBarrio, crearBarrio, subirImagenBarrio, eliminarImagenBarrio } from '../slice';
+import { fetchUsers } from '../../auth/slice';
 import { Link } from 'react-router-dom';
 import BarrioIntegrantes from './BarrioIntegrantes';
 

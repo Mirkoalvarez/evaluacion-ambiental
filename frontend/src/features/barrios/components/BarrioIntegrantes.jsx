@@ -5,8 +5,8 @@ import {
     agregarIntegrante,
     actualizarIntegrante,
     eliminarIntegrante,
-} from '../features/barriosSlice';
-import { fetchUsers } from '../features/authSlice';
+} from '../slice';
+import { fetchUsers } from '../../auth/slice';
 
 export default function BarrioIntegrantes({ barrioId }) {
     const dispatch = useDispatch();

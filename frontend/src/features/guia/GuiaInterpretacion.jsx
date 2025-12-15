@@ -3,17 +3,19 @@ import './GuiaInterpretacion.css';
 
 export default function GuiaInterpretacion() {
     useEffect(() => {
-    document.title = 'Guía de interpretación de indicadores';
-    const metaDescription = document.querySelector('meta[name="description"]');
-    const content = 'Guía de interpretación de indicadores de energía, agua, residuos, espacios verdes y gestión integral.';
-    if (metaDescription) {
-        metaDescription.setAttribute('content', content);
-    } else {
-        const meta = document.createElement('meta');
-        meta.name = 'description';
-        meta.content = content;
-        document.head.appendChild(meta);
-    }
+        // Mantiene el título de la app (EcoEval) y sólo ajusta descripción si quieres.
+        const prevTitle = document.title;
+        const metaDescription = document.querySelector('meta[name="description"]');
+        const content = 'Guía de interpretación de indicadores de energía, agua, residuos, espacios verdes y gestión integral.';
+        if (metaDescription) {
+            metaDescription.setAttribute('content', content);
+        } else {
+            const meta = document.createElement('meta');
+            meta.name = 'description';
+            meta.content = content;
+            document.head.appendChild(meta);
+        }
+        return () => { document.title = prevTitle; }; // restaura por si alguna otra página cambia el título
     }, []);
 
     return (

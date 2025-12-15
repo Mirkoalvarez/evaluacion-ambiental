@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { listarBarrios, listarEvaluacionesDeBarrio } from '../features/barriosSlice';
-import { eliminarEvaluacion } from '../features/evaluacionesSlice';
+import { listarBarrios, listarEvaluacionesDeBarrio } from '../slice';
+import { eliminarEvaluacion } from '../../evaluaciones/slice';
 import { Link, useParams } from 'react-router-dom';
 
 export default function BarrioEvaluaciones() {
@@ -20,7 +20,7 @@ export default function BarrioEvaluaciones() {
     }, [dispatch, id, items.length]);
 
     const barrio = items.find(b => String(b.id) === String(id));
-    const list = evaluaciones[id] || [];
+    const list = useMemo(() => evaluaciones[id] || [], [evaluaciones, id]);
     const puedeEliminar = user && (user.role === 'admin' || user.role === 'moderador' || barrio?.autor_id === user.id);
 
     const filtrados = useMemo(() => {
@@ -49,41 +49,19 @@ export default function BarrioEvaluaciones() {
                 <div className="row g-2">
                     <div className="col-md-3">
                         <label className="form-label">Creado por</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={creadoPor}
-                            onChange={(e) => setCreadoPor(e.target.value)}
-                            placeholder="Username o email"
-                        />
+                        <input type="text" className="form-control" value={creadoPor} onChange={(e) => setCreadoPor(e.target.value)} placeholder="Username o email" />
                     </div>
                     <div className="col-md-3">
                         <label className="form-label">Editado por</label>
-                        <input
-                            type="text"
-                            className="form-control"
-                            value={editadoPor}
-                            onChange={(e) => setEditadoPor(e.target.value)}
-                            placeholder="Username o email"
-                        />
+                        <input type="text" className="form-control" value={editadoPor} onChange={(e) => setEditadoPor(e.target.value)} placeholder="Username o email" />
                     </div>
                     <div className="col-md-3">
                         <label className="form-label">Desde</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={desde}
-                            onChange={(e) => setDesde(e.target.value)}
-                        />
+                        <input type="date" className="form-control" value={desde} onChange={(e) => setDesde(e.target.value)} />
                     </div>
                     <div className="col-md-3">
                         <label className="form-label">Hasta</label>
-                        <input
-                            type="date"
-                            className="form-control"
-                            value={hasta}
-                            onChange={(e) => setHasta(e.target.value)}
-                        />
+                        <input type="date" className="form-control" value={hasta} onChange={(e) => setHasta(e.target.value)} />
                     </div>
                 </div>
             </div>
