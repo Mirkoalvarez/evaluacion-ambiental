@@ -55,6 +55,7 @@ export default function BarrioList() {
         e.preventDefault();
         const nombreLimpio = nuevoBarrio.trim().replace(/\s+/g, ' ');
         if (!nombreLimpio) return alert('El nombre no puede estar vacío');
+        if (nombreLimpio.length < 3) return alert('El nombre debe tener al menos 3 caracteres');
         if (nombreLimpio.length > 80) return alert('El nombre es demasiado largo');
         if (!/^[\wáéíóúÁÉÍÓÚñÑ0-9 .-]+$/.test(nombreLimpio)) return alert('El nombre contiene caracteres no permitidos');
         if (requiereModerador && !moderadorId) {
@@ -105,6 +106,7 @@ export default function BarrioList() {
                             <input
                                 type="text"
                                 className="form-control"
+                                minLength={3}
                                 value={nuevoBarrio}
                                 onChange={(e) => setNuevoBarrio(e.target.value)}
                                 placeholder="Nombre del barrio"

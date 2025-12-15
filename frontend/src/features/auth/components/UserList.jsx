@@ -34,7 +34,9 @@ export default function UserList() {
         const username = selected.username.trim().replace(/\s+/g, ' ');
         const email = selected.email.trim();
         if (!username || !email) return setErrorMsg('Username y email son obligatorios');
+        if (username.length < 3) return setErrorMsg('Username mínimo 3 caracteres');
         if (!/^[\wáéíóúÁÉÍÓÚñÑüÜ0-9 .-]+$/.test(username)) return setErrorMsg('Username contiene caracteres no permitidos');
+        if (newPassword && newPassword.trim().length < 8) return setErrorMsg('Contraseña nueva mínimo 8 caracteres');
         setMessage(''); setErrorMsg('');
         const res = await dispatch(updateUserRemote({
             id: selected.id,
@@ -61,6 +63,8 @@ export default function UserList() {
         const email = newUser.email.trim();
         const password = newUser.password.trim();
         if (!username || !email || !password) return setErrorMsg('Completa username, email y contraseña');
+        if (username.length < 3) return setErrorMsg('Username mínimo 3 caracteres');
+        if (password.length < 8) return setErrorMsg('Contraseña mínimo 8 caracteres');
         if (!/^[\wáéíóúÁÉÍÓÚñÑüÜ0-9 .-]+$/.test(username)) return setErrorMsg('Username contiene caracteres no permitidos');
         setMessage(''); setErrorMsg('');
         const res = await dispatch(createUserAdmin({ ...newUser, username, email, password }));
@@ -85,15 +89,15 @@ export default function UserList() {
                     <form className="row g-3" onSubmit={createUser}>
                         <div className="col-md-3">
                             <label className="form-label">Username</label>
-                            <input className="form-control" value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} required />
+                            <input className="form-control" value={newUser.username} onChange={(e) => setNewUser({ ...newUser, username: e.target.value })} required minLength={3} />
                         </div>
                         <div className="col-md-3">
                             <label className="form-label">Email</label>
-                            <input type="email" className="form-control" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required />
+                            <input type="email" className="form-control" value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} required minLength={5} />
                         </div>
                         <div className="col-md-3">
                             <label className="form-label">Contraseña</label>
-                            <input type="password" className="form-control" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required />
+                            <input type="password" className="form-control" value={newUser.password} onChange={(e) => setNewUser({ ...newUser, password: e.target.value })} required minLength={8} />
                         </div>
                         <div className="col-md-2">
                             <label className="form-label">Rol</label>
@@ -147,11 +151,11 @@ export default function UserList() {
                         <form onSubmit={saveUser} className="row g-3">
                             <div className="col-md-4">
                                 <label className="form-label">Username</label>
-                                <input className="form-control" value={selected.username} onChange={(e) => setSelected({ ...selected, username: e.target.value })} required />
+                                <input className="form-control" value={selected.username} onChange={(e) => setSelected({ ...selected, username: e.target.value })} required minLength={3} />
                             </div>
                             <div className="col-md-4">
                                 <label className="form-label">Email</label>
-                                <input type="email" className="form-control" value={selected.email} onChange={(e) => setSelected({ ...selected, email: e.target.value })} required />
+                                <input type="email" className="form-control" value={selected.email} onChange={(e) => setSelected({ ...selected, email: e.target.value })} required minLength={5} />
                             </div>
                             <div className="col-md-4">
                                 <label className="form-label">Rol</label>
@@ -163,7 +167,7 @@ export default function UserList() {
                             </div>
                             <div className="col-md-4">
                                 <label className="form-label">Nueva contraseña (opcional)</label>
-                                <input type="password" className="form-control" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Dejar en blanco para no cambiar" />
+                                <input type="password" className="form-control" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="Dejar en blanco para no cambiar" minLength={8} />
                             </div>
                             <div className="col-12 d-flex gap-2">
                                 <button className="btn btn-success" type="submit">Guardar</button>

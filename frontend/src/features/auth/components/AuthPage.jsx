@@ -27,8 +27,10 @@ export default function AuthPage() {
             const payload = {};
             const id = form.identifier.trim();
             if (!id) return;
+            if (id.length < 3) return alert('Ingrese al menos 3 caracteres');
             if (id.includes('@')) payload.email = id; else payload.username = id;
             payload.password = form.password;
+            if (!payload.password || payload.password.length < 8) return alert('Contraseña mínimo 8 caracteres');
             dispatch(login(payload));
         } else {
             const username = form.username.trim();
@@ -36,6 +38,8 @@ export default function AuthPage() {
             const pass = form.password.trim();
             const pass2 = form.password2.trim();
             if (!username || !email || !pass) return alert('Completa username, email y contraseña');
+            if (username.length < 3) return alert('Username mínimo 3 caracteres');
+            if (pass.length < 8) return alert('Contraseña mínimo 8 caracteres');
             if (pass !== pass2) return alert('Las contraseñas no coinciden');
             if (username.length > 60 || email.length > 120) return alert('Username o email demasiado largos');
             const validUser = /^[\wáéíóúñüÁÉÍÓÚÑÜ .-]+$/.test(username);
@@ -67,12 +71,12 @@ export default function AuthPage() {
                                 <>
                                     <div className="mb-3">
                                         <label className="form-label">Usuario o email</label>
-                                        <input type="text" className="form-control" name="identifier" value={form.identifier} onChange={handleChange} required />
+                                        <input type="text" className="form-control" name="identifier" value={form.identifier} onChange={handleChange} required minLength={3} />
                                     </div>
                                     <div className="mb-3">
                                         <label className="form-label">Contraseña</label>
                                         <div className="input-group">
-                                            <input type={showPass ? 'text' : 'password'} className="form-control" name="password" value={form.password} onChange={handleChange} required />
+                                            <input type={showPass ? 'text' : 'password'} className="form-control" name="password" value={form.password} onChange={handleChange} required minLength={8} />
                                             <button type="button" className="btn btn-outline-secondary" onClick={() => setShowPass(!showPass)}>
                                                 {showPass ? 'Ocultar' : 'Mostrar'}
                                             </button>
@@ -83,16 +87,16 @@ export default function AuthPage() {
                                 <>
                                     <div className="mb-3">
                                         <label className="form-label">Usuario</label>
-                                        <input type="text" className="form-control" name="username" value={form.username} onChange={handleChange} required />
+                                        <input type="text" className="form-control" name="username" value={form.username} onChange={handleChange} required minLength={3} />
                                     </div>
                                     <div className="mb-3">
                                         <label className="form-label">Email</label>
-                                        <input type="email" className="form-control" name="email" value={form.email} onChange={handleChange} required />
+                                        <input type="email" className="form-control" name="email" value={form.email} onChange={handleChange} required minLength={5} />
                                     </div>
                                     <div className="mb-3">
                                         <label className="form-label">Contraseña</label>
                                         <div className="input-group">
-                                            <input type={showPass ? 'text' : 'password'} className="form-control" name="password" value={form.password} onChange={handleChange} required />
+                                            <input type={showPass ? 'text' : 'password'} className="form-control" name="password" value={form.password} onChange={handleChange} required minLength={8} />
                                             <button type="button" className="btn btn-outline-secondary" onClick={() => setShowPass(!showPass)}>
                                                 {showPass ? 'Ocultar' : 'Mostrar'}
                                             </button>
@@ -101,7 +105,7 @@ export default function AuthPage() {
                                     <div className="mb-3">
                                         <label className="form-label">Repetir contraseña</label>
                                         <div className="input-group">
-                                            <input type={showPass2 ? 'text' : 'password'} className="form-control" name="password2" value={form.password2} onChange={handleChange} required />
+                                            <input type={showPass2 ? 'text' : 'password'} className="form-control" name="password2" value={form.password2} onChange={handleChange} required minLength={8} />
                                             <button type="button" className="btn btn-outline-secondary" onClick={() => setShowPass2(!showPass2)}>
                                                 {showPass2 ? 'Ocultar' : 'Mostrar'}
                                             </button>
