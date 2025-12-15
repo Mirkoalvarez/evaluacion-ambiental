@@ -6,10 +6,10 @@ export const crearEvaluacion = createAsyncThunk(
     'evaluaciones/crear',
     async (payload, { rejectWithValue }) => {
         try {
-        const { data } = await api.post('/evaluaciones', payload);
-        return data;
+            const { data } = await api.post('/evaluaciones', payload);
+            return data;
         } catch (e) {
-        return rejectWithValue(e?.response?.data || { error: 'Error al crear evaluación' });
+            return rejectWithValue(e?.response?.data || { error: 'Error al crear evaluación' });
         }
     }
 );
@@ -19,10 +19,10 @@ export const obtenerEvaluacion = createAsyncThunk(
     'evaluaciones/obtener',
     async (id, { rejectWithValue }) => {
         try {
-        const { data } = await api.get(`/evaluaciones/${id}`);
-        return data;
+            const { data } = await api.get(`/evaluaciones/${id}`);
+            return data;
         } catch (e) {
-        return rejectWithValue(e?.response?.data || { error: 'Evaluación no encontrada' });
+            return rejectWithValue(e?.response?.data || { error: 'Evaluación no encontrada' });
         }
     }
 );
@@ -32,10 +32,62 @@ export const patchEvaluacion = createAsyncThunk(
     'evaluaciones/patch',
     async ({ id, cambios }, { rejectWithValue }) => {
         try {
-        const { data } = await api.patch(`/evaluaciones/${id}`, cambios);
-        return data;
+            const { data } = await api.patch(`/evaluaciones/${id}`, cambios);
+            return data;
         } catch (e) {
-        return rejectWithValue(e?.response?.data || { error: 'Error al actualizar evaluación' });
+            return rejectWithValue(e?.response?.data || { error: 'Error al actualizar evaluación' });
+        }
+    }
+);
+
+export const listarArchivosEvaluacion = createAsyncThunk(
+    'evaluaciones/listarArchivos',
+    async (id, { rejectWithValue }) => {
+        try {
+            const { data } = await api.get(`/evaluaciones/${id}/archivos`);
+            return { id, archivos: data };
+        } catch (e) {
+            return rejectWithValue(e?.response?.data || { error: 'No se pudieron obtener los archivos' });
+        }
+    }
+);
+
+export const subirArchivoEvaluacion = createAsyncThunk(
+    'evaluaciones/subirArchivo',
+    async ({ id, file }, { rejectWithValue }) => {
+        try {
+            const form = new FormData();
+            form.append('archivo', file);
+            const { data } = await api.post(`/evaluaciones/${id}/archivos`, form, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            return { id, archivo: data };
+        } catch (e) {
+            return rejectWithValue(e?.response?.data || { error: 'No se pudo subir el archivo' });
+        }
+    }
+);
+
+export const eliminarArchivoEvaluacion = createAsyncThunk(
+    'evaluaciones/eliminarArchivo',
+    async ({ archivoId }, { rejectWithValue }) => {
+        try {
+            const { data } = await api.delete(`/evaluaciones/archivos/${archivoId}`);
+            return { archivoId, ok: data?.ok };
+        } catch (e) {
+            return rejectWithValue(e?.response?.data || { error: 'No se pudo eliminar el archivo' });
+        }
+    }
+);
+
+export const eliminarEvaluacion = createAsyncThunk(
+    'evaluaciones/eliminar',
+    async (id, { rejectWithValue }) => {
+        try {
+            const { data } = await api.delete(`/evaluaciones/${id}`);
+            return { id, ok: data?.ok };
+        } catch (e) {
+            return rejectWithValue(e?.response?.data || { error: 'No se pudo eliminar la evaluación' });
         }
     }
 );
@@ -63,7 +115,29 @@ const slice = createSlice({
 
         .addCase(patchEvaluacion.pending, (s) => { s.guardando = true; s.error = null; })
         .addCase(patchEvaluacion.fulfilled, (s, a) => { s.guardando = false; s.actual = a.payload; })
-        .addCase(patchEvaluacion.rejected, (s, a) => { s.guardando = false; s.error = a.payload?.error || 'Error'; });
+        .addCase(patchEvaluacion.rejected, (s, a) => { s.guardando = false; s.error = a.payload?.error || 'Error'; })
+
+        .addCase(listarArchivosEvaluacion.fulfilled, (s, a) => {
+            if (s.actual && String(s.actual.id) === String(a.payload.id)) {
+                s.actual = { ...s.actual, archivos: a.payload.archivos };
+            }
+        })
+        .addCase(subirArchivoEvaluacion.fulfilled, (s, a) => {
+            if (s.actual && String(s.actual.id) === String(a.payload.id)) {
+                const prev = s.actual.archivos || [];
+                s.actual = { ...s.actual, archivos: [a.payload.archivo, ...prev] };
+            }
+        })
+        .addCase(eliminarArchivoEvaluacion.fulfilled, (s, a) => {
+            if (s.actual && s.actual.archivos) {
+                s.actual.archivos = s.actual.archivos.filter((x) => x.id !== a.payload.archivoId);
+            }
+        })
+        .addCase(eliminarEvaluacion.fulfilled, (s, a) => {
+            if (s.actual && String(s.actual.id) === String(a.payload.id)) {
+                s.actual = null;
+            }
+        });
     }
 });
 

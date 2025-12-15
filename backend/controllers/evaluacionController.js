@@ -1,9 +1,13 @@
 // backend/controllers/evaluacionController.js
-const { sequelize, Barrio, Evaluacion } = require('../models');
+const { sequelize, Barrio, Evaluacion, EvaluacionArchivo } = require('../models');
+const fs = require('fs');
+const path = require('path');
 const {
     puedeVerBarrio,
     puedeCrearEvaluacion,
     puedeEditarEvaluacion,
+    isAdmin,
+    isModerador,
 } = require('../services/permisosService');
 
 // Nota: el cálculo de resultados lo hace el hook beforeSave del modelo Evaluacion
@@ -66,6 +70,7 @@ const evaluacionController = {
                     },
                     { association: 'creador', attributes: ['id', 'username', 'email', 'role'] },
                     { association: 'editor', attributes: ['id', 'username', 'email', 'role'] },
+                    { association: 'archivos', attributes: ['id', 'original_name', 'mime_type', 'size', 'path', 'createdAt'] },
                 ]
             });
 
@@ -89,6 +94,7 @@ const evaluacionController = {
                     },
                     { association: 'creador', attributes: ['id', 'username', 'email', 'role'] },
                     { association: 'editor', attributes: ['id', 'username', 'email', 'role'] },
+                    { association: 'archivos', attributes: ['id', 'original_name', 'mime_type', 'size', 'path', 'createdAt'] },
                 ]
             });
             if (!evaluacion) return res.status(404).json({ error: 'Evaluación no encontrada' });
@@ -169,6 +175,7 @@ const evaluacionController = {
                     },
                     { association: 'creador', attributes: ['id', 'username', 'email', 'role'] },
                     { association: 'editor', attributes: ['id', 'username', 'email', 'role'] },
+                    { association: 'archivos', attributes: ['id', 'original_name', 'mime_type', 'size', 'path', 'createdAt'] },
                 ]
             });
 
@@ -177,6 +184,89 @@ const evaluacionController = {
             await t.rollback();
             next(error);
         }
+    },
+
+    // GET /api/evaluaciones/:id/archivos
+    async listarArchivos(req, res, next) {
+        try {
+            const user = req.user;
+            const ev = await Evaluacion.findByPk(req.params.id);
+            if (!ev) return res.status(404).json({ error: 'Evaluación no encontrada' });
+
+            const puede = await puedeVerBarrio(user, ev.barrio_id);
+            if (!puede) return res.status(403).json({ error: 'No autorizado' });
+
+            const archivos = await EvaluacionArchivo.findAll({
+                where: { evaluacion_id: ev.id },
+                order: [['created_at', 'DESC']],
+                attributes: ['id', 'original_name', 'mime_type', 'size', 'path', 'createdAt'],
+            });
+
+            res.json(archivos);
+        } catch (error) { next(error); }
+    },
+
+    // POST /api/evaluaciones/:id/archivos
+    async subirArchivo(req, res, next) {
+        try {
+            const user = req.user;
+            const ev = await Evaluacion.findByPk(req.params.id);
+            if (!ev) return res.status(404).json({ error: 'Evaluación no encontrada' });
+
+            const autorizado = isAdmin(user) || isModerador(user) || await puedeEditarEvaluacion(user, ev);
+            if (!autorizado) return res.status(403).json({ error: 'No autorizado' });
+
+            const file = req.file;
+            if (!file) return res.status(400).json({ error: 'Archivo requerido' });
+
+            const registro = await EvaluacionArchivo.create({
+                evaluacion_id: ev.id,
+                file_name: file.filename,
+                original_name: file.originalname,
+                mime_type: file.mimetype,
+                size: file.size,
+                path: `/uploads/evaluaciones/${file.filename}`,
+            });
+
+            res.status(201).json(registro);
+        } catch (error) { next(error); }
+    },
+
+    // GET /api/evaluaciones/archivos/:archivoId/descargar
+    async descargarArchivo(req, res, next) {
+        try {
+            const archivo = await EvaluacionArchivo.findByPk(req.params.archivoId, { include: [{ association: 'evaluacion' }] });
+            if (!archivo) return res.status(404).json({ error: 'Archivo no encontrado' });
+
+            const puede = await puedeVerBarrio(req.user, archivo.evaluacion.barrio_id);
+            if (!puede) return res.status(403).json({ error: 'No autorizado' });
+
+            const abs = path.join(__dirname, '..', archivo.path.replace(/^[\\/]/, ''));
+            if (!fs.existsSync(abs)) return res.status(404).json({ error: 'Archivo no disponible en servidor' });
+
+            return res.download(abs, archivo.original_name);
+        } catch (error) { next(error); }
+    },
+
+    // DELETE /api/evaluaciones/archivos/:archivoId
+    async eliminarArchivo(req, res, next) {
+        try {
+            const archivo = await EvaluacionArchivo.findByPk(req.params.archivoId, { include: [{ association: 'evaluacion' }] });
+            if (!archivo) return res.status(404).json({ error: 'Archivo no encontrado' });
+
+            const puede = isAdmin(req.user) || isModerador(req.user) || await puedeEditarEvaluacion(req.user, archivo.evaluacion);
+            if (!puede) return res.status(403).json({ error: 'No autorizado' });
+
+            try {
+                const abs = path.join(__dirname, '..', archivo.path.replace(/^[\\/]/, ''));
+                if (fs.existsSync(abs)) fs.unlinkSync(abs);
+            } catch (e) {
+                console.warn('No se pudo borrar archivo adjunto', e.message);
+            }
+
+            await EvaluacionArchivo.destroy({ where: { id: archivo.id } });
+            return res.json({ ok: true });
+        } catch (error) { next(error); }
     },
 
     // DELETE /api/evaluaciones/:id
@@ -190,13 +280,26 @@ const evaluacionController = {
                 await t.rollback();
                 return res.status(404).json({ error: 'Evaluación no encontrada' });
             }
-            const autorizado = await puedeEditarEvaluacion(user, ev);
+            const autorizado = isAdmin(user) || isModerador(user) || await puedeEditarEvaluacion(user, ev);
             if (!autorizado) {
                 await t.rollback();
                 return res.status(403).json({ error: 'No autorizado' });
             }
 
             const barrioId = ev.barrio_id;
+
+            // Borrar archivos asociados (registro + fichero)
+            const archivos = await EvaluacionArchivo.findAll({ where: { evaluacion_id: id }, transaction: t });
+            for (const arch of archivos) {
+                try {
+                    const abs = path.join(__dirname, '..', arch.path.replace(/^[\\/]/, ''));
+                    if (fs.existsSync(abs)) fs.unlinkSync(abs);
+                } catch (e) {
+                    console.warn('No se pudo borrar archivo adjunto', e.message);
+                }
+            }
+            await EvaluacionArchivo.destroy({ where: { evaluacion_id: id }, transaction: t });
+
             await ev.destroy({ transaction: t });
 
             // actualizar resultado_total del barrio si borramos la más reciente

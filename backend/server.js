@@ -2,8 +2,10 @@
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path');
+const fs = require('fs');
 const config = require('./config/config');
-const { sequelize, User } = require('./models/index'); // <- usa el índice nuevo
+const { sequelize, User } = require('./models/index');
 
 // Rutas
 const barrioRoutes = require('./routes/barrioRoutes');
@@ -16,6 +18,13 @@ const PORT = config.port;
 // Middleware esencial
 app.use(cors());
 app.use(bodyParser.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Garantiza que existan directorios de subida
+['uploads', 'uploads/evaluaciones', 'uploads/barrios'].forEach((dir) => {
+    const full = path.join(__dirname, dir);
+    if (!fs.existsSync(full)) fs.mkdirSync(full, { recursive: true });
+});
 
 // Rutas
 app.use('/api/barrios', barrioRoutes);
@@ -28,7 +37,7 @@ app.use((err, req, res, next) => {
     const statusCode = err.statusCode || 500;
     const message = err.message || 'Error interno del servidor';
     res.status(statusCode).json({ error: message });
-    });
+});
 
 // Sincronizar DB y arrancar (sin alter para evitar recrear tablas con FKs en SQLite)
 sequelize.sync()
@@ -49,10 +58,11 @@ sequelize.sync()
         }
 
         app.listen(PORT, () => {
-        console.log(`Servidor corriendo en http://localhost:${PORT}`);
+            console.log(`Servidor corriendo en http://localhost:${PORT}`);
         });
     })
     .catch(err => {
         console.error('Error al conectar con la DB o sincronizar modelos:', err);
         process.exit(1);
     });
+

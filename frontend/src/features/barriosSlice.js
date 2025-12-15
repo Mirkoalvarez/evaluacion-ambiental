@@ -121,6 +121,34 @@ export const eliminarUltimaEvaluacion = createAsyncThunk(
     }
 );
 
+export const subirImagenBarrio = createAsyncThunk(
+    'barrios/subirImagenBarrio',
+    async ({ id, file }, { rejectWithValue }) => {
+        try {
+            const form = new FormData();
+            form.append('imagen', file);
+            const { data } = await api.post(`/barrios/${id}/imagen`, form, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            return { id, imagen: data };
+        } catch (e) {
+            return rejectWithValue(e?.response?.data || { error: 'No se pudo subir la imagen' });
+        }
+    }
+);
+
+export const eliminarImagenBarrio = createAsyncThunk(
+    'barrios/eliminarImagenBarrio',
+    async (id, { rejectWithValue }) => {
+        try {
+            const { data } = await api.delete(`/barrios/${id}/imagen`);
+            return { id, ok: data?.ok };
+        } catch (e) {
+            return rejectWithValue(e?.response?.data || { error: 'No se pudo eliminar la imagen' });
+        }
+    }
+);
+
 const slice = createSlice({
     name: 'barrios',
     initialState: {
@@ -173,8 +201,24 @@ const slice = createSlice({
         .addCase(eliminarBarrio.fulfilled, (s, a) => {
             if (a.payload?.ok) s.items = s.items.filter(b => b.id !== a.payload.id);
         })
-        .addCase(eliminarUltimaEvaluacion.fulfilled, (s, a) => {
+        .addCase(eliminarUltimaEvaluacion.fulfilled, (s) => {
             // No modificamos items aquí; tras borrar última evaluación, el resultado_total del barrio pudo cambiar.
+        })
+        .addCase(subirImagenBarrio.fulfilled, (s, a) => {
+            const { id, imagen } = a.payload;
+            const ix = s.items.findIndex((b) => b.id === Number(id));
+            if (ix >= 0) {
+                s.items[ix] = { ...s.items[ix], imagen };
+            }
+        })
+        .addCase(eliminarImagenBarrio.fulfilled, (s, a) => {
+            const { id, ok } = a.payload;
+            if (!ok && ok !== undefined) return;
+            const ix = s.items.findIndex((b) => b.id === Number(id));
+            if (ix >= 0) {
+                const { imagen, ...rest } = s.items[ix];
+                s.items[ix] = rest;
+            }
         })
 
         // Integrantes

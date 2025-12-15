@@ -1,11 +1,12 @@
-// ... (imports existentes)
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { listarBarrios, eliminarBarrio, crearBarrio } from '../features/barriosSlice';
+import { listarBarrios, eliminarBarrio, crearBarrio, subirImagenBarrio, eliminarImagenBarrio } from '../features/barriosSlice';
 import { fetchUsers } from '../features/authSlice';
 import { Link } from 'react-router-dom';
 import BarrioIntegrantes from './BarrioIntegrantes';
-import { useMemo } from 'react';
+
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const FILE_BASE = API_BASE.replace(/\/api$/, '');
 
 export default function BarrioList() {
     const dispatch = useDispatch();
@@ -16,6 +17,8 @@ export default function BarrioList() {
     const [expandido, setExpandido] = useState(null);
     const [busquedaNombre, setBusquedaNombre] = useState('');
     const [busquedaAutor, setBusquedaAutor] = useState('');
+    const [imagenes, setImagenes] = useState({});
+    const [subiendoImg, setSubiendoImg] = useState({});
 
     useEffect(() => { dispatch(listarBarrios()); }, [dispatch]);
     useEffect(() => {
@@ -53,7 +56,7 @@ export default function BarrioList() {
         const nombreLimpio = nuevoBarrio.trim().replace(/\s+/g, ' ');
         if (!nombreLimpio) return alert('El nombre no puede estar vacío');
         if (nombreLimpio.length > 80) return alert('El nombre es demasiado largo');
-        if (!/^[\wáéíóúñüÁÉÍÓÚÑÜ .-]+$/.test(nombreLimpio)) return alert('El nombre contiene caracteres no permitidos');
+        if (!/^[\wáéíóúÁÉÍÓÚñÑ0-9 .-]+$/.test(nombreLimpio)) return alert('El nombre contiene caracteres no permitidos');
         if (requiereModerador && !moderadorId) {
             alert('Debes seleccionar un moderador para este barrio.');
             return;
@@ -66,6 +69,28 @@ export default function BarrioList() {
             setModeradorId('');
             dispatch(listarBarrios());
         }
+    };
+
+    const onChangeImagen = (barrioId, file) => {
+        setImagenes((prev) => ({ ...prev, [barrioId]: file }));
+    };
+
+    const onSubirImagen = async (barrioId) => {
+        const file = imagenes[barrioId];
+        if (!file) return alert('Selecciona una imagen');
+        setSubiendoImg((p) => ({ ...p, [barrioId]: true }));
+        const res = await dispatch(subirImagenBarrio({ id: barrioId, file }));
+        if (!res.error) {
+            setImagenes((p) => ({ ...p, [barrioId]: null }));
+            dispatch(listarBarrios());
+        }
+        setSubiendoImg((p) => ({ ...p, [barrioId]: false }));
+    };
+
+    const onEliminarImagen = async (barrioId) => {
+        if (!window.confirm('¿Quitar la imagen de este barrio?')) return;
+        await dispatch(eliminarImagenBarrio(barrioId));
+        dispatch(listarBarrios());
     };
 
     return (
@@ -149,7 +174,19 @@ export default function BarrioList() {
             <div className="row g-3">
                 {filtrados.map(b => (
                 <div className="col-md-4" key={b.id}>
-                    <div className="card">
+                    <div className="card h-100">
+                    {b.imagen?.path ? (
+                        <img
+                            src={`${FILE_BASE}${b.imagen.path}`}
+                            alt={b.nombre}
+                            className="card-img-top"
+                            style={{ height: 160, objectFit: 'cover' }}
+                        />
+                    ) : (
+                        <div className="bg-light d-flex align-items-center justify-content-center" style={{ height: 160 }}>
+                            <small className="text-muted">Sin imagen</small>
+                        </div>
+                    )}
                     <div className="card-body">
                         <div className="d-flex justify-content-between align-items-center mb-2">
                         <h5 className="card-title mb-0">{b.nombre}</h5>
@@ -185,8 +222,37 @@ export default function BarrioList() {
                             Eliminar barrio
                         </button>
                         </div>
+
+                        {user && (user.id === b.autor_id || user.role === 'admin' || user.role === 'moderador') && (
+                            <div className="mt-3">
+                                <label className="form-label small">Imagen del barrio (autor/moderador/admin)</label>
+                                <div className="d-flex gap-2">
+                                    <input
+                                        type="file"
+                                        accept=".png,.jpg,.jpeg,.webp"
+                                        className="form-control form-control-sm"
+                                        onChange={(e) => onChangeImagen(b.id, e.target.files?.[0])}
+                                    />
+                                    <button
+                                        type="button"
+                                        className="btn btn-sm btn-outline-secondary"
+                                        onClick={() => onSubirImagen(b.id)}
+                                        disabled={subiendoImg[b.id]}
+                                    >
+                                        {subiendoImg[b.id] ? 'Subiendo…' : 'Subir'}
+                                    </button>
+                                    {b.imagen && (
+                                        <button type="button" className="btn btn-sm btn-outline-danger" onClick={() => onEliminarImagen(b.id)}>Quitar</button>
+                                    )}
+                                </div>
+                                {imagenes[b.id]?.name && <small className="text-muted">Seleccionado: {imagenes[b.id].name}</small>}
+                            </div>
+                        )}
+
                         {expandido === b.id && (
-                            <BarrioIntegrantes barrioId={b.id} />
+                            <div className="mt-3">
+                                <BarrioIntegrantes barrioId={b.id} />
+                            </div>
                         )}
                     </div>
                     </div>

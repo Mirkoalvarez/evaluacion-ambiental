@@ -1,13 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { listarBarrios, listarEvaluacionesDeBarrio } from '../features/barriosSlice';
+import { eliminarEvaluacion } from '../features/evaluacionesSlice';
 import { Link, useParams } from 'react-router-dom';
-import { useState, useMemo } from 'react';
 
 export default function BarrioEvaluaciones() {
     const { id } = useParams();
     const dispatch = useDispatch();
     const { items, evaluaciones, cargando, error } = useSelector(s => s.barrios);
+    const { user } = useSelector(s => s.auth);
     const [creadoPor, setCreadoPor] = useState('');
     const [editadoPor, setEditadoPor] = useState('');
     const [desde, setDesde] = useState('');
@@ -20,6 +21,7 @@ export default function BarrioEvaluaciones() {
 
     const barrio = items.find(b => String(b.id) === String(id));
     const list = evaluaciones[id] || [];
+    const puedeEliminar = user && (user.role === 'admin' || user.role === 'moderador' || barrio?.autor_id === user.id);
 
     const filtrados = useMemo(() => {
         const c = creadoPor.trim().toLowerCase();
@@ -92,21 +94,37 @@ export default function BarrioEvaluaciones() {
         ) : (
             <div className="list-group">
             {filtrados.map(ev => (
-                <Link
-                key={ev.id}
-                to={`/resultados/${ev.id}`}
-                className="list-group-item list-group-item-action"
+                <div
+                    key={ev.id}
+                    className="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
                 >
-                <div className="d-flex justify-content-between">
-                    <div>
-                    <strong>#{ev.id}</strong> — {ev.fecha ? new Date(ev.fecha).toLocaleDateString() : '—'}
-                    </div>
-                    <span className="badge bg-primary rounded-pill">{ev.resultado_total ?? '—'}</span>
+                    <Link
+                        to={`/resultados/${ev.id}`}
+                        className="flex-grow-1 text-decoration-none text-reset"
+                    >
+                        <div className="d-flex justify-content-between">
+                            <div>
+                            <strong>#{ev.id}</strong> — {ev.fecha ? new Date(ev.fecha).toLocaleDateString() : '—'}
+                            </div>
+                            <span className="badge bg-primary rounded-pill">{ev.resultado_total ?? '—'}</span>
+                        </div>
+                        <div className="small text-muted mt-1">
+                            Creado por: {ev.creador?.username || ev.creador?.email || '—'} • Editado por: {ev.editor?.username || ev.editor?.email || '—'}
+                        </div>
+                    </Link>
+                    {puedeEliminar && (
+                        <button
+                            className="btn btn-sm btn-outline-danger ms-3"
+                            onClick={async () => {
+                                if (!window.confirm('¿Eliminar esta evaluación?')) return;
+                                await dispatch(eliminarEvaluacion(ev.id));
+                                dispatch(listarEvaluacionesDeBarrio(id));
+                            }}
+                        >
+                            Eliminar
+                        </button>
+                    )}
                 </div>
-                <div className="small text-muted mt-1">
-                    Creado por: {ev.creador?.username || ev.creador?.email || '—'} • Editado por: {ev.editor?.username || ev.editor?.email || '—'}
-                </div>
-                </Link>
             ))}
             </div>
         )}

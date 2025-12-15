@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { obtenerEvaluacion } from '../features/evaluacionesSlice';
+import { obtenerEvaluacion, listarArchivosEvaluacion, subirArchivoEvaluacion, eliminarArchivoEvaluacion } from '../features/evaluacionesSlice';
 
 const categoryIcons = {
     Energia: '⚡',
@@ -11,12 +11,21 @@ const categoryIcons = {
     Gestion: '📊',
 };
 
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
+const FILE_BASE = API_BASE.replace(/\/api$/, '');
+
 export default function Resultados() {
     const { id } = useParams();
     const dispatch = useDispatch();
     const { actual, cargando, error } = useSelector((s) => s.evaluaciones);
+    const [archivo, setArchivo] = useState(null);
+    const [subiendo, setSubiendo] = useState(false);
 
-    useEffect(() => { dispatch(obtenerEvaluacion(id)); }, [dispatch, id]);
+    useEffect(() => {
+        dispatch(obtenerEvaluacion(id)).then(() => {
+            dispatch(listarArchivosEvaluacion(id));
+        });
+    }, [dispatch, id]);
 
     if (cargando) return <div className="container"><p className="text-info">Cargando resultados...</p></div>;
     if (error) return <div className="container"><div className="alert alert-danger">{error}</div></div>;
@@ -45,6 +54,33 @@ export default function Resultados() {
         { label: 'Creado en', value: actual?.createdAt ? new Date(actual.createdAt).toLocaleString() : null },
         { label: 'Actualizado en', value: actual?.updatedAt ? new Date(actual.updatedAt).toLocaleString() : null },
     ];
+
+    const onSubirArchivo = async (e) => {
+        e.preventDefault();
+        if (!archivo) return alert('Selecciona un archivo');
+        setSubiendo(true);
+        try {
+            await dispatch(subirArchivoEvaluacion({ id: actual.id, file: archivo })).unwrap();
+            await dispatch(listarArchivosEvaluacion(actual.id));
+            setArchivo(null);
+        } catch (err) {
+            // handled by slice
+        } finally {
+            setSubiendo(false);
+        }
+    };
+
+    const archivos = actual.archivos || [];
+
+    const onEliminarArchivo = async (archivoId) => {
+        if (!window.confirm('¿Eliminar este archivo adjunto?')) return;
+        try {
+            await dispatch(eliminarArchivoEvaluacion({ archivoId })).unwrap();
+            await dispatch(listarArchivosEvaluacion(actual.id));
+        } catch (err) {
+            // manejado por slice
+        }
+    };
 
     return (
         <div className="container">
@@ -75,7 +111,7 @@ export default function Resultados() {
             <div className="card mt-4 p-3">
                 <div className="card-body">
                     <h5 className="card-title d-flex align-items-center">
-                        <span className="me-2">🏁</span>
+                        <span className="me-2">🧭</span>
                         Resultado General
                     </h5>
                     <p className="card-text">Letra: <strong>{actual.resultado_total}</strong></p>
@@ -83,6 +119,50 @@ export default function Resultados() {
                     <p className="text-muted small mt-3">
                         Fecha de evaluación: {actual.fecha ? new Date(actual.fecha).toLocaleDateString() : '—'}
                     </p>
+                </div>
+            </div>
+
+            <div className="card mt-4">
+                <div className="card-body">
+                    <h5 className="card-title">Archivos adjuntos</h5>
+                    <form className="d-flex gap-2 align-items-center mb-3" onSubmit={onSubirArchivo}>
+                        <input
+                            type="file"
+                            className="form-control"
+                            accept=".xlsx,.xls,.csv,.pdf,.doc,.docx,.png,.jpg,.jpeg"
+                            onChange={(e) => setArchivo(e.target.files?.[0] || null)}
+                        />
+                        <button className="btn btn-outline-primary" type="submit" disabled={subiendo}>
+                            {subiendo ? 'Subiendo…' : 'Subir'}
+                        </button>
+                    </form>
+                    {archivos.length === 0 && <div className="text-muted small">Aún no hay archivos adjuntos.</div>}
+                    {archivos.length > 0 && (
+                        <ul className="list-group list-group-flush">
+                            {archivos.map((a) => (
+                                <li key={a.id} className="list-group-item d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div className="fw-semibold">{a.original_name}</div>
+                                        <div className="small text-muted">
+                                            {a.mime_type} · {(a.size / 1024).toFixed(1)} KB · {a.createdAt ? new Date(a.createdAt).toLocaleString() : ''}
+                                        </div>
+                                    </div>
+                                    <div className="d-flex gap-2">
+                                        <a className="btn btn-sm btn-outline-secondary" href={`${FILE_BASE}${a.path}`} target="_blank" rel="noopener noreferrer">
+                                            Descargar
+                                        </a>
+                                        <button
+                                            type="button"
+                                            className="btn btn-sm btn-outline-danger"
+                                            onClick={() => onEliminarArchivo(a.id)}
+                                        >
+                                            Eliminar
+                                        </button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </div>
             </div>
 

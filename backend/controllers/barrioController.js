@@ -1,6 +1,8 @@
 // backend/controllers/barrioController.js
 const { Op } = require('sequelize');
-const { Barrio, Evaluacion, sequelize, BarrioMember, User } = require('../models');
+const { Barrio, Evaluacion, sequelize, BarrioMember, User, BarrioImagen } = require('../models');
+const fs = require('fs');
+const path = require('path');
 const {
     isAdmin,
     isModerador,
@@ -17,7 +19,10 @@ const barrioController = {
             const userId = Number(user.id);
             let barrios;
 
-            const includeAutor = [{ association: 'autor', attributes: ['id', 'username', 'email', 'role'] }];
+            const includeAutor = [
+                { association: 'autor', attributes: ['id', 'username', 'email', 'role'] },
+                { association: 'imagen', attributes: ['id', 'path', 'original_name'] },
+            ];
 
             if (isAdmin(user) || isModerador(user)) {
                 barrios = await Barrio.findAll({
@@ -107,8 +112,9 @@ const barrioController = {
             const barrio = await Barrio.findByPk(id);
             if (!barrio) return res.status(404).json({ error: 'Barrio no encontrado' });
 
-            const puedeEditar = await puedeEditarBarrio(user, barrio.id);
-            if (!puedeEditar) return res.status(403).json({ error: 'No autorizado' });
+            if (barrio.autor_id !== user.id) {
+                return res.status(403).json({ error: 'Solo el autor puede subir la imagen' });
+            }
 
             if (nombre !== undefined) {
                 if (!nombre || typeof nombre !== 'string' || !nombre.trim()) {
@@ -126,6 +132,75 @@ const barrioController = {
 
             await barrio.save();
             return res.json(barrio);
+        } catch (error) { next(error); }
+    },
+
+    // POST /api/barrios/:id/imagen  -> reemplaza la imagen principal
+    async subirImagen(req, res, next) {
+        try {
+            const user = req.user;
+            const barrioId = req.params.id;
+            const file = req.file;
+
+            if (!file) return res.status(400).json({ error: 'Imagen requerida' });
+
+            const barrio = await Barrio.findByPk(barrioId);
+            if (!barrio) return res.status(404).json({ error: 'Barrio no encontrado' });
+
+            const puedeEditar = await puedeEditarBarrio(user, barrio.id);
+            if (!(puedeEditar || isAdmin(user) || isModerador(user))) {
+                return res.status(403).json({ error: 'No autorizado' });
+            }
+
+            const anterior = await BarrioImagen.findOne({ where: { barrio_id: barrioId } });
+            if (anterior) {
+                try {
+                    const abs = path.join(__dirname, '..', anterior.path.replace(/^[\\/]/, ''));
+                    if (fs.existsSync(abs)) fs.unlinkSync(abs);
+                } catch (e) {
+                    console.warn('No se pudo borrar la imagen previa', e.message);
+                }
+                await BarrioImagen.destroy({ where: { barrio_id: barrioId } });
+            }
+
+            const registro = await BarrioImagen.create({
+                barrio_id: barrioId,
+                file_name: file.filename,
+                original_name: file.originalname,
+                mime_type: file.mimetype,
+                size: file.size,
+                path: `/uploads/barrios/${file.filename}`,
+            });
+
+            return res.status(201).json(registro);
+        } catch (error) { next(error); }
+    },
+
+    // DELETE /api/barrios/:id/imagen -> elimina la imagen asociada
+    async eliminarImagen(req, res, next) {
+        try {
+            const user = req.user;
+            const barrioId = req.params.id;
+            const barrio = await Barrio.findByPk(barrioId);
+            if (!barrio) return res.status(404).json({ error: 'Barrio no encontrado' });
+
+            const puedeEditar = await puedeEditarBarrio(user, barrio.id);
+            if (!(puedeEditar || isAdmin(user) || isModerador(user))) {
+                return res.status(403).json({ error: 'No autorizado' });
+            }
+
+            const img = await BarrioImagen.findOne({ where: { barrio_id: barrioId } });
+            if (!img) return res.status(404).json({ error: 'El barrio no tiene imagen' });
+
+            try {
+                const abs = path.join(__dirname, '..', img.path.replace(/^[\\/]/, ''));
+                if (fs.existsSync(abs)) fs.unlinkSync(abs);
+            } catch (e) {
+                console.warn('No se pudo borrar la imagen del barrio', e.message);
+            }
+
+            await BarrioImagen.destroy({ where: { barrio_id: barrioId } });
+            return res.json({ ok: true });
         } catch (error) { next(error); }
     },
 
@@ -337,6 +412,18 @@ const barrioController = {
             if (!(isAdmin(user) || isModerador(user) || barrio.autor_id === user.id)) {
                 await t.rollback();
                 return res.status(403).json({ error: 'No autorizado' });
+            }
+
+            // Borrar imagen (archivo y registro)
+            const img = await BarrioImagen.findOne({ where: { barrio_id: id }, transaction: t });
+            if (img) {
+                try {
+                    const abs = path.join(__dirname, '..', img.path.replace(/^[\\/]/, ''));
+                    if (fs.existsSync(abs)) fs.unlinkSync(abs);
+                } catch (e) {
+                    console.warn('No se pudo borrar la imagen del barrio', e.message);
+                }
+                await BarrioImagen.destroy({ where: { barrio_id: id }, transaction: t });
             }
 
             // Si no tenes cascada en las relaciones, borra evaluaciones manualmente
