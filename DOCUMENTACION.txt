@@ -1,0 +1,52 @@
+Proyecto: Evaluacion Ambiental (backend Express/SQLite + frontend React/Redux)
+
+Prerrequisitos:
+- Node.js 18+ y npm
+
+Backend:
+1) Instalar dependencias: cd backend && npm install
+2) Iniciar servidor: node server.js
+   - Levanta en http://localhost:3001
+   - Base SQLite: backend/database.sqlite (se crea sola)
+
+Frontend:
+1) Instalar dependencias: cd frontend && npm install
+2) Iniciar: npm start
+   - Levanta en http://localhost:3000 (proxy al backend si está configurado)
+
+Endpoints principales (prefijo /api):
+- Auth:
+  POST /auth/register          (body: username, email, password)
+  POST /auth/login             (body: username/email + password)
+  GET  /auth/users             (admin)
+  PATCH /auth/users/:id        (admin; opcional password)
+  DELETE /auth/users/:id       (admin)
+
+- Barrios:
+  GET    /barrios                           (lista filtrada por rol)
+  POST   /barrios                           (crear; requiere token, moderador_id si creador no es moderador)
+  PATCH  /barrios/:id                       (renombrar)
+  DELETE /barrios/:id                       (borra barrio, evaluaciones, integrantes)
+  POST   /barrios/:id/imagen                (subir imagen; autor/moderador/admin)
+  DELETE /barrios/:id/imagen                (eliminar imagen)
+  GET    /barrios/:id/evaluaciones          (historial del barrio)
+  DELETE /barrios/:id/evaluaciones/ultima   (borra última eval)
+  GET    /barrios/:id/integrantes           (listar integrantes)
+  POST   /barrios/:id/integrantes           (agregar; no admins)
+  PATCH  /barrios/:id/integrantes/:userId   (editar permisos)
+  DELETE /barrios/:id/integrantes/:userId   (quitar)
+
+- Evaluaciones:
+  POST   /evaluaciones                      (crear)
+  GET    /evaluaciones/:id                  (detalle)
+  PATCH  /evaluaciones/:id                  (editar respuestas/fecha)
+  DELETE /evaluaciones/:id                  (autor barrio/moderador/admin)
+  GET    /evaluaciones/:id/archivos         (listar adjuntos)
+  POST   /evaluaciones/:id/archivos         (subir adjunto, form-data campo "archivo")
+  DELETE /evaluaciones/archivos/:archivoId  (eliminar adjunto)
+  GET    /evaluaciones/archivos/:archivoId/descargar (descarga)
+
+Notas:
+- Autenticación vía Authorization: Bearer <token>.
+- Roles: admin y moderador tienen acceso amplio; autor del barrio puede gestionar su barrio y evaluaciones propias.
+- Seed inicial (backend): crea usuarios Admin/admin@admin.com (Admin123) y Moderador/mod@mod.com (Mod123) si no existen.
